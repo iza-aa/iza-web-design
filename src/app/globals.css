@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind v4 theme tokens (CSS-first config).
+ * These values must mirror src/lib/tokens.ts and
+ * docs-source/hyliox-waitlist-card.md — keep all three in sync.
+ */
+@theme {
+  --color-primary: #3B82F6;
+  --color-secondary: #9CA3AF;
+  --color-tertiary: #3F3F46;
+  --color-neutral: #DCE0E8;
+  --color-surface: #1C1C21;
+  --color-on-surface: #F5F5F7;
+  --color-error: #EF4444;
+  --color-primary-contrast: #FFFFFF;
+  --color-border-subtle: #33333A;
+
+  --radius-none: 0px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /*
+   * GOTCHA: these named keys (xs, sm, md, lg, xl, xxl) collide with
+   * Tailwind's built-in named scale used by max-w, w, h, p and similar
+   * sizing utilities — e.g. "max-w-xl" silently resolves to this 48px
+   * spacing value instead of the built-in 36rem, with no error or warning.
+   * Never suffix a sizing utility with a bare xs/sm/md/lg/xl/xxl key in this
+   * project; use the numeric spacing scale instead (e.g. "max-w-144" for
+   * 36rem, "max-w-112" for 28rem) or an arbitrary value ("max-w-[36rem]").
+   * This bit the showcase and /start pages once already (2026-07-04) —
+   * don't repeat it.
+   */
+  --spacing-xs: 4px;
+  --spacing-sm: 12px;
+  --spacing-md: 20px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-xxl: 96px;
+
+  /*
+   * Fallback stacks for now — no network fetch required at build time.
+   * Swap in next/font/google (or self-hosted font files) once your build
+   * environment has normal internet access; see README.md.
+   */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Baloo 2", system-ui, sans-serif;
+}
+
+/*
+ * Light/dark theming (docs/hyliox-localization-theming.md).
+ * Dark is the unclassed default (matches every --color-* above); adding
+ * `.light` to <html> overrides the same custom properties at runtime, so
+ * every `bg-primary`/`text-on-surface`/etc utility repaints automatically —
+ * no dark: variant plumbing needed since dark IS the base state here.
+ * --glass-* are the theme-aware equivalents of the ad-hoc bg-white/8,
+ * border-white/10 etc. values used for glass surfaces — components should
+ * reference these (via arbitrary values, e.g. bg-[var(--glass-bg)]) instead
+ * of hardcoding white-opacity, or they'll stay dark-only.
+ */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-strong-bg: rgba(28, 28, 33, 0.7);
+  --glass-input-bg: #151519;
+}
+
+.light {
+  --color-primary: #2563EB;
+  --color-secondary: #4B5563;
+  --color-tertiary: #E5E7EB;
+  --color-neutral: #1F2937;
+  --color-surface: #F9FAFB;
+  --color-on-surface: #111827;
+  --color-error: #DC2626;
+  --color-border-subtle: #E5E7EB;
+
+  --glass-bg: rgba(17, 24, 39, 0.05);
+  --glass-border: rgba(17, 24, 39, 0.1);
+  --glass-strong-bg: rgba(249, 250, 251, 0.75);
+  --glass-input-bg: #F3F4F6;
+}
+
+html {
+  /*
+   * Reserve the scrollbar gutter permanently. Without this, entering the
+   * chat view (shorter page, no overflow) hides the scrollbar and the
+   * viewport's clientWidth grows by its width — but AmbientCanvas's inner
+   * <canvas> is only resized on a `window.resize` event (debounced), which
+   * this transition doesn't fire, so the retro-CRT shader stays at its old
+   * (narrower) pixel width and a plain strip appears on the right edge.
+   * Keeping the gutter stable means the viewport width never changes
+   * between intro/chat states, so the mismatch can't happen. (2026-07-05)
+   */
+  scrollbar-gutter: stable;
+}
+
+body {
+  @apply bg-surface text-on-surface overflow-x-hidden transition-colors duration-300;
+}

@@ -1,0 +1,109 @@
+{
+  "common": {
+    "startProject": "Mulai Proyek",
+    "comingSoon": "Segera Hadir",
+    "submit": "Kirim",
+    "close": "Tutup",
+    "backHome": "Kembali ke beranda",
+    "viewAllWork": "Lihat semua karya"
+  },
+  "nav": {
+    "work": "Karya",
+    "components": "Komponen",
+    "reopenChat": "Chat AI"
+  },
+  "dock": {
+    "reopenAria": "Buka lagi chat AI"
+  },
+  "aiIntake": {
+    "headlineVariants": ["Ceritakan tentang proyek Anda", "Apa yang ingin Anda bangun?", "Mari kita rancang bersama"],
+    "subheading": "Beberapa pertanyaan, lalu akan saya teruskan langsung ke Iza.",
+    "placeholder": "Jelaskan apa yang ingin Anda bangun…",
+    "optionScreenshot": "Bagikan tangkapan layar referensi",
+    "optionLink": "Bagikan tautan yang Anda suka",
+    "optionNotSure": "Belum yakin — bantu saya jelajahi",
+    "typeOwnAnswer": "Ketik jawaban sendiri",
+    "summaryTitle": "Rangkuman",
+    "briefSentTo": "Brief dikirim ke {name}",
+    "fields": {
+      "name": "Nama",
+      "email": "Email",
+      "projectType": "Jenis proyek",
+      "budgetRange": "Kisaran anggaran",
+      "timeline": "Linimasa",
+      "description": "Deskripsi",
+      "references": "Referensi"
+    },
+    "confirmSuccess": "Diterima — tunggu balasan dalam beberapa hari.",
+    "confirmError": "Gagal mengirim email otomatis — hubungi langsung dan sebutkan apa yang sudah Anda ceritakan di sini.",
+    "thinking": "Berpikir…",
+    "rateLimited": "Sedang banyak pesan masuk — hubungi langsung saja, nanti akan kami balas.",
+    "closeAria": "Tutup",
+    "bannedTitle": "Diblokir sementara",
+    "bannedBody": "Pesan itu terdeteksi kasar/tidak pantas. Anda bisa coba lagi dalam {time}.",
+    "bannedRepeat": "Mengulanginya bikin waktu tunggu jadi 2x lipat tiap kali — sudah {strikes} kali."
+  },
+  "stepGuide": {
+    "title": "Sesi Anda",
+    "step1": "Ceritakan proyek Anda",
+    "step2": "Jawab beberapa pertanyaan singkat",
+    "step3": "Konfirmasi & bagikan kontak",
+    "step4": "Terkirim ke {name}",
+    "closeAria": "Tutup sesi"
+  },
+  "homepage": {
+    "feature1Title": "Studio Proyek AI Anda",
+    "feature1Body": "Satu percakapan menentukan cakupan, anggaran, dan linimasa — tanpa bolak-balik isi formulir.",
+    "feature2Title": "Percakapan Nyata",
+    "feature2Body": "Setiap sesi ditinjau langsung oleh Iza, bukan sekadar dicatat lalu dilupakan.",
+    "feature3Title": "Brief Terstruktur",
+    "feature3Body": "Gemini mengubah obrolan jadi brief yang rapi dan terstruktur begitu Anda selesai.",
+    "feature4Title": "Langsung ke Kotak Masuk",
+    "feature4Body": "Brief yang sudah dikonfirmasi beserta transkrip lengkap otomatis masuk ke email Iza.",
+    "recentWork": "Karya terbaru"
+  },
+  "start": {
+    "heading": "Segera hadir",
+    "body": "Chat intake proyek terpandu akan hadir di Phase 2. Sampai saat itu, hubungi langsung dan ceritakan apa yang ingin Anda bangun."
+  },
+  "about": {
+    "heading": "Tentang IZA UI",
+    "intro": "IZA UI adalah studio desain-dan-bangun satu orang. Saya membawa proyek dari ide kasar sampai situs yang rilis dan terawat — sistem desain, pembangunan frontend, dan perkakas berbasis AI yang mempercepat keduanya.",
+    "howIWorkHeading": "Cara saya bekerja",
+    "howIWorkBody": "Setiap proyek dimulai dari percakapan nyata, bukan template. Saya tentukan dulu sistem token kecil (warna, tipografi, spacing, motion), baru bangun produk sesungguhnya berdasarkan itu — jadi hasil akhirnya cocok dengan yang dirancang, sampai ke pikselnya.",
+    "whatIBuildHeading": "Yang saya bangun",
+    "whatIBuildBodyPrefix": "Situs marketing, frontend produk, sistem desain kecil, dan sesekali automation atau bot. Lihat",
+    "recentWorkLink": "karya terbaru",
+    "whatIBuildBodySuffix": "untuk contohnya."
+  },
+  "showcase": {
+    "heading": "Showcase",
+    "intro": "Proyek asli. Teks problem/approach/outcome masih draft — visual dan strukturnya sudah final.",
+    "problem": "Masalah",
+    "approach": "Pendekatan",
+    "outcome": "Hasil",
+    "all": "Semua",
+    "back": "Kembali ke showcase",
+    "prev": "Sebelumnya",
+    "next": "Selanjutnya",
+    "visit": "Kunjungi situs live"
+  },
+  "gallery": {
+    "heading": "Galeri Desain",
+    "filterIza": "Iza",
+    "filterSuperdesign": "Superdesign.dev",
+    "searchPlaceholder": "Cari…",
+    "promptHeading": "Prompt",
+    "copyPrompt": "Salin prompt",
+    "copied": "Tersalin!",
+    "staticPreview": "Preview statis",
+    "back": "Kembali ke beranda",
+    "notFound": "Entri desain tidak ditemukan.",
+    "viewSource": "Lihat di Superdesign.dev",
+    "loading": "Memuat entri desain…",
+    "loadError": "Galeri gagal dimuat — coba lagi sebentar lagi.",
+    "browseGalleryAction": "Jelajahi galeri desain",
+    "selectAsReference": "Pilih ini sebagai referensi",
+    "backToBrowse": "Kembali ke galeri"
+  }
+}

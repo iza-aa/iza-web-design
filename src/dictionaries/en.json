@@ -1,0 +1,109 @@
+{
+  "common": {
+    "startProject": "Start a Project",
+    "comingSoon": "Coming Soon",
+    "submit": "Submit",
+    "close": "Close",
+    "backHome": "Back home",
+    "viewAllWork": "View all work"
+  },
+  "nav": {
+    "work": "Work",
+    "components": "Components",
+    "reopenChat": "AI Chat"
+  },
+  "dock": {
+    "reopenAria": "Reopen AI chat"
+  },
+  "aiIntake": {
+    "headlineVariants": ["Tell me about your project", "What are you building?", "Let's scope it together"],
+    "subheading": "A few questions, then I'll pass this straight to Iza.",
+    "placeholder": "Describe what you're trying to build…",
+    "optionScreenshot": "Share a reference screenshot",
+    "optionLink": "Share a link you like",
+    "optionNotSure": "Not sure yet — help me explore",
+    "typeOwnAnswer": "Type my own answer",
+    "summaryTitle": "Summary",
+    "briefSentTo": "Brief sent to {name}",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "projectType": "Project type",
+      "budgetRange": "Budget range",
+      "timeline": "Timeline",
+      "description": "Description",
+      "references": "References"
+    },
+    "confirmSuccess": "Got it — expect a reply within a couple of days.",
+    "confirmError": "Couldn't email this automatically — reach out directly and mention what you shared here.",
+    "thinking": "Thinking…",
+    "rateLimited": "I'm getting a lot of messages right now — reach out directly instead and I'll get back to you.",
+    "closeAria": "Close",
+    "bannedTitle": "Temporarily blocked",
+    "bannedBody": "That message was flagged as abusive. You can try again in {time}.",
+    "bannedRepeat": "Repeating this doubles the wait time each time — {strikes} so far."
+  },
+  "stepGuide": {
+    "title": "Your session",
+    "step1": "Describe your project",
+    "step2": "Answer a few quick questions",
+    "step3": "Confirm & share contact",
+    "step4": "Sent to {name}",
+    "closeAria": "Close session"
+  },
+  "homepage": {
+    "feature1Title": "Your AI Project Studio",
+    "feature1Body": "One conversation defines scope, budget, and timeline — no back-and-forth forms.",
+    "feature2Title": "Real Conversation",
+    "feature2Body": "Every session is reviewed personally by Iza, not just logged and forgotten.",
+    "feature3Title": "Structured Brief",
+    "feature3Body": "Gemini turns the chat into a clean, structured brief the moment you're done.",
+    "feature4Title": "Straight to Inbox",
+    "feature4Body": "Confirmed brief and full transcript land in Iza's inbox automatically.",
+    "recentWork": "Recent work"
+  },
+  "start": {
+    "heading": "Coming soon",
+    "body": "The guided project intake chat lands in Phase 2. Until then, reach out directly and describe what you're building."
+  },
+  "about": {
+    "heading": "About IZA UI",
+    "intro": "IZA UI is a one-person design-and-build studio. I take a project from a rough idea to a shipped, maintainable site — design system, frontend build, and the AI-assisted tooling that speeds up both.",
+    "howIWorkHeading": "How I work",
+    "howIWorkBody": "Every project starts with a real conversation, not a template. I define a small token system (color, type, spacing, motion) first, then build the actual product against it — so what ships matches what was designed, pixel for pixel.",
+    "whatIBuildHeading": "What I build",
+    "whatIBuildBodyPrefix": "Marketing sites, product frontends, small design systems, and the occasional automation or bot on the side. See",
+    "recentWorkLink": "recent work",
+    "whatIBuildBodySuffix": "for examples."
+  },
+  "showcase": {
+    "heading": "Showcase",
+    "intro": "Real projects. Problem/approach/outcome copy is still draft on each — the visuals and structure are final.",
+    "problem": "Problem",
+    "approach": "Approach",
+    "outcome": "Outcome",
+    "all": "All",
+    "back": "Back to showcase",
+    "prev": "Previous",
+    "next": "Next",
+    "visit": "Visit live site"
+  },
+  "gallery": {
+    "heading": "Design Gallery",
+    "filterIza": "Iza",
+    "filterSuperdesign": "Superdesign.dev",
+    "searchPlaceholder": "Search…",
+    "promptHeading": "Prompt",
+    "copyPrompt": "Copy prompt",
+    "copied": "Copied!",
+    "staticPreview": "Static preview",
+    "back": "Back to home",
+    "notFound": "Design entry not found.",
+    "viewSource": "View on Superdesign.dev",
+    "loading": "Loading design entries…",
+    "loadError": "Couldn't load the gallery right now — try again shortly.",
+    "browseGalleryAction": "Browse design gallery",
+    "selectAsReference": "Select this as reference",
+    "backToBrowse": "Back to gallery"
+  }
+}
