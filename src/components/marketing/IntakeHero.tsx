@@ -184,7 +184,7 @@ function QuestionCard({
               if (e.key === "Enter") submitCustom();
             }}
             placeholder={typeOwnLabel}
-            className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-secondary focus:outline-none"
+            className="flex-1 bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm"
           />
           <button
             type="button"
@@ -237,7 +237,7 @@ function ContactCard({
             if (e.key === "Enter") submit();
           }}
           placeholder={nameLabel}
-          className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+          className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
         />
         <input
           value={contact}
@@ -246,7 +246,7 @@ function ContactCard({
             if (e.key === "Enter") submit();
           }}
           placeholder={contactLabel}
-          className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
+          className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
         />
       </div>
       <div className="mt-3 flex justify-end">
@@ -375,9 +375,9 @@ function FieldList({ fields, t }: { fields: Brief; t: (path: string) => string }
   return (
     <dl className="mt-2 divide-y divide-border-subtle text-sm">
       {keys.map((k) => (
-        <div key={k} className="flex items-baseline justify-between gap-4 py-2">
+        <div key={k} className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
           <dt className="shrink-0 text-xs font-medium uppercase tracking-wide text-secondary">{fieldLabel(k, t)}</dt>
-          <dd className="text-right text-on-surface">{fields[k] || "—"}</dd>
+          <dd className="text-on-surface sm:text-right">{fields[k] || "—"}</dd>
         </div>
       ))}
     </dl>

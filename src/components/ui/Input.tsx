@@ -8,7 +8,7 @@ export function Input({ className = "", ...props }: InputHTMLAttributes<HTMLInpu
   return (
     <input
       {...props}
-      className={`h-12 w-full rounded-md border border-border-subtle bg-(--glass-input-bg) px-4 text-sm text-on-surface placeholder:text-secondary transition-colors focus:border-primary focus:outline-none ${className}`}
+      className={`h-12 w-full rounded-md border border-border-subtle bg-(--glass-input-bg) px-4 text-base text-on-surface placeholder:text-secondary transition-colors focus:border-primary focus:outline-none md:text-sm ${className}`}
     />
   );
 }

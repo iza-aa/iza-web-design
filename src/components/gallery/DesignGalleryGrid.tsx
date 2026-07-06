@@ -57,7 +57,7 @@ export function DesignGalleryGrid() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("gallery.searchPlaceholder")}
-            className="w-full bg-transparent text-xs text-on-surface placeholder:text-secondary focus:outline-none sm:w-44"
+            className="w-full bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none sm:w-44 md:text-xs"
           />
         </div>
       </div>

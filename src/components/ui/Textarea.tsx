@@ -12,7 +12,7 @@ export function Textarea({
   return (
     <textarea
       {...props}
-      className={`min-h-26 w-full resize-y rounded-md border border-border-subtle bg-(--glass-input-bg) px-4 py-3.5 text-sm text-on-surface placeholder:text-secondary transition-colors focus:border-primary focus:outline-none ${className}`}
+      className={`min-h-26 w-full resize-y rounded-md border border-border-subtle bg-(--glass-input-bg) px-4 py-3.5 text-base text-on-surface placeholder:text-secondary transition-colors focus:border-primary focus:outline-none md:text-sm ${className}`}
     />
   );
 }

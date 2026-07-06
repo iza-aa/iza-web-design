@@ -115,7 +115,7 @@ export function ReferencePickerModal({
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder={t("gallery.searchPlaceholder")}
-                      className="w-full bg-transparent text-xs text-on-surface placeholder:text-secondary focus:outline-none sm:w-44"
+                      className="w-full bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none sm:w-44 md:text-xs"
                     />
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export function ReferencePickerModal({
                         {selected.source === "iza" ? t("gallery.filterIza") : t("gallery.filterSuperdesign")}
                       </p>
                       <h3 className="mt-2 font-display text-2xl font-semibold">{selected.title}</h3>
-                      <p className="mt-2 max-w-144 text-sm text-secondary">{selected.description}</p>
+                      <p className="mt-2 max-w-144 text-sm text-on-surface">{selected.description}</p>
                     </div>
                     <button
                       type="button"

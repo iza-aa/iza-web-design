@@ -23,7 +23,7 @@ export function LivePreviewPanel({ entry, staticPreviewLabel }: { entry: DesignE
     return (
       <div className={`overflow-hidden rounded-lg ${glassCard}`}>
         <p className="border-b border-(--glass-border) px-3 py-1.5 text-xs text-secondary">{staticPreviewLabel}</p>
-        <div className="h-130 overflow-y-auto">
+        <div className="max-h-130 overflow-y-auto">
           {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary remote screenshot, no known intrinsic size */}
           <img src={entry.thumbnailUrl} alt={entry.title} className="h-auto w-full" />
         </div>
