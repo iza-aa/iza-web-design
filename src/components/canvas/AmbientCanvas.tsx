@@ -206,7 +206,9 @@ const MAIN_FRAGMENT_SHADER = `
   }
 `.replace("DOT_PX_PLACEHOLDER", DOT_PX.toFixed(1));
 
-export function AmbientCanvas({ className = "pointer-events-none fixed inset-0 -z-10" }: { className?: string } = {}) {
+export function AmbientCanvas({
+  className = "pointer-events-none fixed inset-x-0 top-0 -z-10 h-dvh w-full",
+}: { className?: string } = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -383,9 +385,15 @@ export function AmbientCanvas({ className = "pointer-events-none fixed inset-0 -
           }, RESIZE_DEBOUNCE_MS);
         }
         window.addEventListener("resize", handleResize);
+        // iOS Safari: window "resize" doesn't reliably fire when the bottom
+        // toolbar shows/hides on scroll (the CSS box already tracks it via
+        // h-dvh, but the <canvas> element's pixel size needs an explicit
+        // resize call) — visualViewport does fire for that transition.
+        window.visualViewport?.addEventListener("resize", handleResize);
 
         (container as HTMLDivElement & { __cleanup?: () => void }).__cleanup = () => {
           window.removeEventListener("resize", handleResize);
+          window.visualViewport?.removeEventListener("resize", handleResize);
           window.removeEventListener("pointermove", onPointerMove);
           window.removeEventListener("pointerleave", onPointerLeave);
           document.removeEventListener("visibilitychange", handleVisibility);

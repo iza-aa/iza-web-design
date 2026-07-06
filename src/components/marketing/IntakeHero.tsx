@@ -403,7 +403,7 @@ export function IntakeHero({
   const bottomRef = useRef<HTMLDivElement>(null);
   const [composerEl, setComposerEl] = useState<HTMLDivElement | null>(null);
   const [composerHeight, setComposerHeight] = useState(0);
-  const { close, closed, sessionCloseTick } = useIntakeVisibility();
+  const { close, closed, sessionCloseTick, setAutoVisible } = useIntakeVisibility();
   const { t, tList, setLocale } = useLanguage();
   const { messages, setMessages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/intake", body: { model } }),
@@ -490,6 +490,30 @@ export function IntakeHero({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
   }, [messages, busy, composerHeight]);
+
+  // Auto-close the card on scroll down, auto-reopen on scroll up. Ignores
+  // banned state (that early-returns before this ever mounts) and uses a
+  // small threshold so tiny scroll jitter (mobile rubber-banding) doesn't
+  // toggle it; only closes past a minimum scrollY so it doesn't hide itself
+  // over a 1px nudge right at the top of the page.
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        if (delta > 8 && y > 80) setAutoVisible(false);
+        else if (delta < -8) setAutoVisible(true);
+        if (Math.abs(delta) > 8) lastY = y;
+        ticking = false;
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [setAutoVisible]);
 
   useEffect(() => {
     if (sessionCloseTick === 0) return;

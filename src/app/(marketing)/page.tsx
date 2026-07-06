@@ -117,7 +117,7 @@ export default function HomePage() {
             transition={{ duration: 0.3 }}
             className="w-full"
           >
-            <h3 className="mb-6 text-left font-display text-sm font-semibold uppercase tracking-wide text-secondary">
+            <h3 className="mb-6 text-left font-display text-xl font-bold  tracking-wide text-white">
               {t("gallery.heading")}
             </h3>
             <DesignGalleryGrid />

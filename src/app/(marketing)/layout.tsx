@@ -15,7 +15,7 @@ export default function MarketingLayout({
       */}
       <div
         aria-hidden
-        className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(59,130,246,0.16),transparent),radial-gradient(ellipse_60%_50%_at_100%_100%,rgba(156,163,175,0.08),transparent)]"
+        className="fixed inset-x-0 top-0 -z-10 h-dvh w-full bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(59,130,246,0.16),transparent),radial-gradient(ellipse_60%_50%_at_100%_100%,rgba(156,163,175,0.08),transparent)]"
       />
       <AmbientCanvas />
       <main className="mx-auto max-w-7xl px-6 py-16">{children}</main>

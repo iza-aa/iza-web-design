@@ -9,6 +9,10 @@ type IntakeVisibilityValue = {
   close: () => void;
   reopen: () => void;
   closeSession: () => void;
+  // Scroll-driven show/hide (no scrollIntoView, unlike reopen()) — used by
+  // the auto-close-on-scroll-down / auto-reopen-on-scroll-up behavior, which
+  // must not fight the user's own scroll with a competing smooth-scroll.
+  setAutoVisible: (visible: boolean) => void;
 };
 
 const IntakeVisibilityContext = createContext<IntakeVisibilityValue | null>(null);
@@ -28,6 +32,7 @@ export function IntakeVisibilityProvider({ children }: { children: ReactNode }) 
       setReopenTick((t) => t + 1);
     },
     closeSession: () => setSessionCloseTick((t) => t + 1),
+    setAutoVisible: (visible: boolean) => setClosed(!visible),
   };
 
   return <IntakeVisibilityContext.Provider value={value}>{children}</IntakeVisibilityContext.Provider>;
