@@ -13,6 +13,13 @@ import { INTAKE_SYSTEM_PROMPT } from "@/lib/intake-prompt";
 import { AUTO_FALLBACK_ORDER, isModelId, type ModelChoice, type ModelId } from "@/lib/ai-models";
 
 export const maxDuration = 30;
+// Google's Generative Language API (the AI Studio key this route uses, not
+// Vertex AI) only allows requests from a limited set of countries. Vercel's
+// default region can land close to the visitor — e.g. an APAC region for a
+// visitor in Indonesia — whose egress IP Google rejects with "User location
+// is not supported for the API use" regardless of which API key/model is
+// tried. Pinning this function to US East forces a supported egress IP.
+export const preferredRegion = ["iad1"];
 
 function isQuotaError(err: unknown): boolean {
   if (RetryError.isInstance(err)) {
