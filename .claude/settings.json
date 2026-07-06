@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/122.0 Safari/537.36\" -o /tmp/designmd.html -w \"HTTP %{http_code}, size %{size_download} bytes\\\\n\" https://www.designmd.co/)",
+      "Bash(command -v chromium-cli)",
+      "Bash(node -e \"console.log\\(require\\('@playwright/test/package.json'\\).version\\)\")",
+      "Bash(npx playwright *)",
+      "Bash(timeout 30 bash -c 'until curl -sf http://localhost:3000 >/dev/null; do sleep 1; done')",
+      "Bash(node \"C:\\\\Users\\\\rezky\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--iza-web-design\\\\4d6a1240-2e8e-4ed5-878c-6cff6469f606\\\\scratchpad\\\\probe.mjs\")",
+      "Bash(cp \"C:\\\\Users\\\\rezky\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--iza-web-design\\\\4d6a1240-2e8e-4ed5-878c-6cff6469f606\\\\scratchpad\\\\probe.mjs\" \"d:/iza-web-design/scratch-probe.mjs\")",
+      "Bash(node scratch-probe.mjs)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(taskkill //F //PID 13056)",
+      "Bash(node scratch-probe2.mjs)",
+      "Bash(node scratch-probe4.mjs)",
+      "Bash(node scratch-probe5.mjs)",
+      "Bash(rm -f d:/iza-web-design/scratch-probe*.mjs *)",
+      "Bash(node scratch-dock.mjs)",
+      "Bash(node scratch-visual.mjs)",
+      "Bash(node scratch-visual2.mjs)",
+      "Bash(node scratch-visual3.mjs)",
+      "Bash(rm -f d:/iza-web-design/scratch-visual*.mjs d:/iza-web-design/shot-*.png *)",
+      "Bash(sed -i 's/colorScheme: \"dark\"/colorScheme: \"light\"/g' scratch-mobile.mjs)",
+      "Bash(node scratch-mobile.mjs)",
+      "Bash(rm -f d:/iza-web-design/scratch-mobile.mjs d:/iza-web-design/shot-mobile-*.png *)"
+    ],
+    "additionalDirectories": [
+      "d:\\iza-web-design"
+    ]
+  }
+}

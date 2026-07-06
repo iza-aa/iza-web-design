@@ -18,6 +18,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(document.documentElement.classList.contains("light") ? "light" : "dark");
   }, []);
 
+  // Live system-theme sync — only while the visitor has never manually
+  // toggled (no stored preference). A saved localStorage choice always
+  // wins over the OS, matching toggle()'s own behavior; this just keeps
+  // "auto" visitors in sync if the OS switches light/dark mid-session
+  // instead of only picking it up once, at the initial script's paint.
+  useEffect(() => {
+    if (localStorage.getItem(THEME_STORAGE_KEY)) return;
+    const media = window.matchMedia("(prefers-color-scheme: light)");
+    function onChange(e: MediaQueryListEvent) {
+      const next: Theme = e.matches ? "light" : "dark";
+      document.documentElement.classList.toggle("light", next === "light");
+      setTheme(next);
+    }
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
+
   function toggle() {
     setTheme((prev) => {
       const next: Theme = prev === "dark" ? "light" : "dark";

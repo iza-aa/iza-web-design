@@ -7,6 +7,12 @@ import type { ReactNode } from "react";
 /**
  * DockItem — `dock-item` token from hyliox-waitlist-card.md: a single
  * floating-dock tile with a hover tooltip and an active-state dot indicator.
+ *
+ * `boost` (0–1) drives the macOS-dock-style magnification — DockNav computes
+ * it per item based on distance from whichever item is currently hovered
+ * (1 = the hovered item itself, falling off for neighbors, 0 = unaffected),
+ * so this component itself has no hover-state opinion beyond reporting
+ * hover start/end back up.
  */
 export function DockItem({
   href,
@@ -14,17 +20,25 @@ export function DockItem({
   icon,
   active,
   onClick,
+  boost = 0,
+  onHoverStart,
+  onHoverEnd,
 }: {
   href?: string;
   label: string;
   icon: ReactNode;
   active?: boolean;
   onClick?: () => void;
+  boost?: number;
+  onHoverStart?: () => void;
+  onHoverEnd?: () => void;
 }) {
   const content = (
     <>
       <motion.div
-        whileHover={{ scale: 1.15, y: -4 }}
+        onHoverStart={onHoverStart}
+        onHoverEnd={onHoverEnd}
+        animate={{ scale: 1 + boost * 0.4, y: -boost * 14 }}
         whileTap={{ scale: 0.95 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="h-12 w-12"

@@ -36,7 +36,7 @@ export const caseStudies: CaseStudy[] = [
   },
   {
     slug: "business-command",
-    title: "Business Command",
+    title: "IZA Management Information System",
     type: "SaaS Dashboard",
     summary: "An owner-facing analytics dashboard with AI-generated business advice.",
     problem: "Draft — describe the real brief/context here.",

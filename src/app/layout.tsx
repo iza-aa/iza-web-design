@@ -6,6 +6,7 @@ import { PreferencesBar } from "@/components/layout/PreferencesBar";
 import { IntakeVisibilityProvider } from "@/lib/intake-visibility";
 import { ThemeProvider, themeInitScript } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/language";
+import { siteLoaderInitScript } from "@/lib/site-loader";
 
 export const metadata: Metadata = {
   title: "izadesign",
@@ -24,8 +25,22 @@ export default function RootLayout({
         preference) and applies the `.light` class before first paint, so
         the page never flashes dark-then-light or vice versa.
       */}
+      {/*
+        suppressHydrationWarning on both inline scripts below: same
+        extension interference as <body>'s (e.g. Bitdefender-style tools
+        inject a `bis_use`/`bis_register` attribute and blank the script's
+        text after the initial paint) — the script itself already ran
+        synchronously as the browser parsed this HTML, before React ever
+        hydrates, so the later DOM mutation doesn't affect behavior.
+      */}
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/*
+          Blocking resource-gate script: adds .site-loaded to <html> once
+          window "load" fires (all images/fonts/scripts settled), which is
+          what fades out #site-loader below — see globals.css.
+        */}
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: siteLoaderInitScript }} />
       </head>
       {/*
         suppressHydrationWarning: some browser extensions (ad blockers,
@@ -35,6 +50,14 @@ export default function RootLayout({
         it does not hide real hydration bugs in children.
       */}
       <body suppressHydrationWarning className="pb-24">
+        <div id="site-loader" aria-hidden="true">
+          <span className="font-display text-lg font-semibold text-on-surface">IZA</span>
+          <div className="site-loader-dots">
+            <span className="site-loader-dot" />
+            <span className="site-loader-dot" />
+            <span className="site-loader-dot" />
+          </div>
+        </div>
         <ThemeProvider>
           <LanguageProvider>
             <IntakeVisibilityProvider>

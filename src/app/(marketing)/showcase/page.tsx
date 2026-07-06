@@ -84,7 +84,13 @@ export default function ShowcasePage() {
                 className={`block overflow-hidden rounded-lg transition-colors hover:border-primary ${glassCard}`}
               >
                 <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border)">
-                  <Image src={c.image} alt={c.title} fill className="object-cover object-top" />
+                  <Image
+                    src={c.image}
+                    alt={c.title}
+                    fill
+                    sizes="(max-width: 639px) 100vw, 50vw"
+                    className="object-cover object-top"
+                  />
                 </div>
                 <div className="p-6">
                   <p className="text-xs uppercase tracking-wide text-secondary">{c.type}</p>

@@ -1,4 +1,13 @@
-import { streamText, generateText, convertToModelMessages, APICallError, RetryError, type UIMessage } from "ai";
+import {
+  streamText,
+  generateText,
+  convertToModelMessages,
+  createUIMessageStreamResponse,
+  APICallError,
+  RetryError,
+  type UIMessage,
+  type UIMessageChunk,
+} from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { INTAKE_SYSTEM_PROMPT } from "@/lib/intake-prompt";
 import { AUTO_FALLBACK_ORDER, isModelId, type ModelChoice, type ModelId } from "@/lib/ai-models";
@@ -69,8 +78,55 @@ export async function POST(req: Request) {
       }
     }
 
-    const result = streamText({ model: google(candidate), system, messages: modelMessages, maxRetries: 0 });
-    return result.toUIMessageStreamResponse();
+    // The ping above only proves the account/model can accept a request — a
+    // free-tier quota can still be blown by the real (much larger) prompt
+    // even when a 1-token ping just succeeded. So peek the real stream's
+    // leading chunks before committing this Response to the client: "start"/
+    // "start-step" are always emitted first regardless of outcome, then
+    // either a real content chunk (success) or an "error" chunk (failure).
+    // Buffered chunks get replayed into the client-facing stream either way,
+    // so no output is lost — only the choice of which combo serves it changes.
+    let streamErr: unknown;
+    const uiStream = streamText({ model: google(candidate), system, messages: modelMessages, maxRetries: 0 }).toUIMessageStream({
+      onError: (err) => {
+        streamErr = err;
+        return err instanceof Error ? err.message : "An error occurred.";
+      },
+    });
+    const reader = uiStream.getReader();
+    const buffered: UIMessageChunk[] = [];
+    let failed = false;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffered.push(value);
+      if (value.type === "error") {
+        failed = true;
+        break;
+      }
+      if (value.type !== "start" && value.type !== "start-step") break;
+    }
+
+    if (failed) {
+      lastError = streamErr;
+      if (!isLastCombo && isQuotaError(streamErr)) continue;
+      throw streamErr;
+    }
+
+    const rebuilt = new ReadableStream<UIMessageChunk>({
+      start(controller) {
+        for (const chunk of buffered) controller.enqueue(chunk);
+      },
+      async pull(controller) {
+        const { done, value } = await reader.read();
+        if (done) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      },
+    });
+    return createUIMessageStreamResponse({ stream: rebuilt });
   }
 
   throw lastError;

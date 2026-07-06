@@ -35,6 +35,16 @@
       "description": "Description",
       "references": "References"
     },
+    "contactMethods": {
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram"
+    },
+    "contactPlaceholders": {
+      "email": "Your email address",
+      "whatsapp": "Your WhatsApp number",
+      "instagram": "Your Instagram handle"
+    },
     "confirmSuccess": "Got it — expect a reply within a couple of days.",
     "confirmError": "Couldn't email this automatically — reach out directly and mention what you shared here.",
     "thinking": "Thinking…",
@@ -93,6 +103,9 @@
     "heading": "Design Gallery",
     "filterIza": "Iza",
     "filterSuperdesign": "Superdesign.dev",
+    "filterColorReference": "Color Reference",
+    "colorReferenceCreditPrefix": "Card format inspired by",
+    "colorReferenceCreditSuffix": " — palettes researched and written by us.",
     "searchPlaceholder": "Search…",
     "promptHeading": "Prompt",
     "copyPrompt": "Copy prompt",
@@ -106,5 +119,9 @@
     "browseGalleryAction": "Browse design gallery",
     "selectAsReference": "Select this as reference",
     "backToBrowse": "Back to gallery"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or may have moved."
   }
 }

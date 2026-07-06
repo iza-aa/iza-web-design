@@ -5,11 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import lefttoplogo from "@/assets/logo/lefttoplogo.png";
+import lefttoplogolight from "@/assets/logo/lefttoplogolight.png";
+import { useTheme } from "@/lib/theme";
 
 const PUNCTUATION = [".", "?", "!"];
 
 export function BrandMark() {
   const [index, setIndex] = useState(0);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const id = setInterval(() => setIndex((i) => (i + 1) % PUNCTUATION.length), 2200);
@@ -22,8 +25,15 @@ export function BrandMark() {
       className="fixed left-4 top-4 z-40 flex items-center gap-2 sm:left-6 sm:top-6"
       aria-label="IZA UI — home"
     >
-      <Image src={lefttoplogo} alt="" width={47} height={24} className="h-3 w-auto sm:h-4" priority />
-      <span className="font-display text-sm font-semibold text-on-surface sm:text-base">
+      <Image
+        src={theme === "light" ? lefttoplogolight : lefttoplogo}
+        alt=""
+        width={47}
+        height={24}
+        className="h-3 w-auto sm:h-4"
+        priority
+      />
+      <span className="font-display text-sm font-bold text-on-surface sm:text-base">
         web design
         <AnimatePresence mode="wait">
           <motion.span

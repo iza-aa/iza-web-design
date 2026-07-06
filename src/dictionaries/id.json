@@ -35,6 +35,16 @@
       "description": "Deskripsi",
       "references": "Referensi"
     },
+    "contactMethods": {
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram"
+    },
+    "contactPlaceholders": {
+      "email": "Alamat email Anda",
+      "whatsapp": "Nomor WhatsApp Anda",
+      "instagram": "Username Instagram Anda"
+    },
     "confirmSuccess": "Diterima — tunggu balasan dalam beberapa hari.",
     "confirmError": "Gagal mengirim email otomatis — hubungi langsung dan sebutkan apa yang sudah Anda ceritakan di sini.",
     "thinking": "Berpikir…",
@@ -93,6 +103,9 @@
     "heading": "Galeri Desain",
     "filterIza": "Iza",
     "filterSuperdesign": "Superdesign.dev",
+    "filterColorReference": "Referensi Warna",
+    "colorReferenceCreditPrefix": "Format kartu terinspirasi dari",
+    "colorReferenceCreditSuffix": " — palet warna diriset dan ditulis sendiri oleh kami.",
     "searchPlaceholder": "Cari…",
     "promptHeading": "Prompt",
     "copyPrompt": "Salin prompt",
@@ -106,5 +119,9 @@
     "browseGalleryAction": "Jelajahi galeri desain",
     "selectAsReference": "Pilih ini sebagai referensi",
     "backToBrowse": "Kembali ke galeri"
+  },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "body": "Halaman yang Anda cari tidak ada atau mungkin sudah dipindahkan."
   }
 }

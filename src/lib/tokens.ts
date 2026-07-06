@@ -76,3 +76,15 @@ export const easing = {
 // white-opacity values so it re-tints correctly under the `.light` theme.
 export const glassCard =
   "border border-(--glass-border) bg-(--glass-bg) shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl";
+
+// Flat variant — same border/bg/blur, no drop shadow. For small inline chips
+// (filter pills, tags) sitting directly on page content, where glassCard's
+// shadow reads as an odd floating-box halo rather than a real elevated card.
+export const glassPill = "border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl";
+
+// Stronger variant — swaps in --glass-strong-bg (a much less transparent
+// fill) for overlays that sit on top of dense content and need to stay
+// legible (dropdown menus, popovers), where glassCard's regular --glass-bg
+// reads as too see-through.
+export const glassCardStrong =
+  "border border-(--glass-border) bg-(--glass-strong-bg) shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl";

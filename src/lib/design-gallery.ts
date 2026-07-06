@@ -7,7 +7,7 @@
 
 export type DesignEntry = {
   id: string;
-  source: "iza" | "superdesign";
+  source: "iza" | "superdesign" | "color-reference";
   title: string;
   slug: string;
   description: string;
@@ -18,6 +18,13 @@ export type DesignEntry = {
   previewUrl?: string;
   creator?: { name: string; avatarUrl: string };
   sourceUrl?: string;
+  // "color-reference" entries only — a brand's color system as a hex list
+  // (first entry conventionally the base/canvas color), a designated accent
+  // for the title-row dot, and a short category pill label (e.g. "Media").
+  // See src/data/color-reference-entries.ts.
+  colors?: string[];
+  accentColor?: string;
+  category?: string;
 };
 
 type SuperdesignApiItem = {

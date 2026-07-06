@@ -4,18 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { scaleIn, easing, durations } from "@/lib/motion";
 import type { DesignEntry } from "@/lib/design-gallery";
-import { ReferencePickerModal } from "@/components/gallery/ReferencePickerModal";
+
+// Lazy — only visitors who click "browse gallery" pay for this modal's JS
+// (gallery grid, live-preview iframe wiring, etc.), not every intake-widget load.
+const ReferencePickerModal = dynamic(
+  () => import("@/components/gallery/ReferencePickerModal").then((mod) => mod.ReferencePickerModal),
+  { ssr: false },
+);
 import { WindowCard } from "@/components/ui/WindowCard";
 import { OWNER_NAME } from "@/lib/intake-prompt";
-import { glassCard } from "@/lib/tokens";
+import { glassCardStrong } from "@/lib/tokens";
 import { useIntakeVisibility } from "@/lib/intake-visibility";
 import { useLanguage } from "@/lib/language";
 import { AI_MODELS, modelLabel, type ModelChoice } from "@/lib/ai-models";
 import { isAbusiveMessage } from "@/lib/abuse-filter";
 import geminiIcon from "@/assets/logo/google-gemini.svg";
+import emailIcon from "@/assets/logo/email.png";
+import whatsappIcon from "@/assets/logo/whatsapp.png";
+import instagramIcon from "@/assets/logo/instagram.png";
 
 const quickActions = [
   { labelKey: "aiIntake.optionScreenshot", prompt: "I'd like to share a reference screenshot of a design I like." },
@@ -84,7 +94,7 @@ function ModelPicker({ value, onChange }: { value: ModelChoice; onChange: (v: Mo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 4 }}
             transition={{ duration: 0.15, ease: easing.standard }}
-            className={`absolute bottom-full left-0 z-10 mb-2 w-44 overflow-hidden rounded-lg p-1 ${glassCard}`}
+            className={`absolute bottom-full left-0 z-10 mb-2 w-44 overflow-hidden rounded-lg p-1 ${glassCardStrong}`}
           >
             {MODEL_CHOICES.map((choice) => (
               <button
@@ -200,24 +210,32 @@ function QuestionCard({
   );
 }
 
+const CONTACT_METHODS = [
+  { key: "email", icon: emailIcon },
+  { key: "whatsapp", icon: whatsappIcon },
+  { key: "instagram", icon: instagramIcon },
+] as const;
+type ContactMethod = (typeof CONTACT_METHODS)[number]["key"];
+
 function ContactCard({
   prompt,
   onAnswer,
   nameLabel,
-  contactLabel,
+  t,
 }: {
   prompt: string;
   onAnswer: (text: string) => void;
   nameLabel: string;
-  contactLabel: string;
+  t: (path: string) => string;
 }) {
   const [name, setName] = useState("");
+  const [method, setMethod] = useState<ContactMethod | null>(null);
   const [contact, setContact] = useState("");
-  const ready = name.trim().length > 0 && contact.trim().length > 0;
+  const ready = name.trim().length > 0 && method !== null && contact.trim().length > 0;
 
   function submit() {
-    if (!ready) return;
-    onAnswer(`${nameLabel}: ${name.trim()}\n${contactLabel}: ${contact.trim()}`);
+    if (!ready || !method) return;
+    onAnswer(`${nameLabel}: ${name.trim()}\n${t(`aiIntake.contactMethods.${method}`)}: ${contact.trim()}`);
   }
 
   return (
@@ -233,21 +251,39 @@ function ContactCard({
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
-          }}
           placeholder={nameLabel}
           className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
         />
-        <input
-          value={contact}
-          onChange={(e) => setContact(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
-          }}
-          placeholder={contactLabel}
-          className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
-        />
+
+        <div className="flex gap-2">
+          {CONTACT_METHODS.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              onClick={() => setMethod(m.key)}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
+                method === m.key
+                  ? "border-primary bg-primary/10 text-on-surface"
+                  : "border-border-subtle text-secondary hover:border-primary hover:text-on-surface"
+              }`}
+            >
+              <Image src={m.icon} alt="" width={16} height={16} className="h-4 w-4 object-contain" />
+              {t(`aiIntake.contactMethods.${m.key}`)}
+            </button>
+          ))}
+        </div>
+
+        {method && (
+          <input
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+            }}
+            placeholder={t(`aiIntake.contactPlaceholders.${method}`)}
+            className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
+          />
+        )}
       </div>
       <div className="mt-3 flex justify-end">
         <button
@@ -514,7 +550,10 @@ export function IntakeHero({
           const y = window.scrollY;
           const delta = y - scrollLastYRef.current;
           if (delta > 8 && y > 80) setAutoVisible(false);
-          else if (delta < -8) setAutoVisible(true);
+          // Only auto-reopen once actually back near the top — a small
+          // upward wiggle deep in e.g. the gallery section shouldn't yank
+          // the intro card back over content the user is still browsing.
+          else if (delta < -8 && y <= 80) setAutoVisible(true);
           if (Math.abs(delta) > 8) scrollLastYRef.current = y;
         }
         ticking = false;
@@ -763,7 +802,7 @@ export function IntakeHero({
                   prompt={activeQuestion.prompt}
                   onAnswer={submit}
                   nameLabel={t("aiIntake.fields.name")}
-                  contactLabel={t("aiIntake.fields.contact")}
+                  t={t}
                 />
               ) : activeQuestion ? (
                 <QuestionCard

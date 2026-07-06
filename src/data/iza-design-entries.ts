@@ -35,7 +35,7 @@ const projects: IzaProject[] = [
   },
   {
     slug: "business-command",
-    title: "Business Command",
+    title: "Iza Management Information System",
     description: "An owner-facing analytics dashboard with AI-generated business advice.",
     tags: ["saas", "dashboard", "analytics"],
     image: assetBusinessCommand,

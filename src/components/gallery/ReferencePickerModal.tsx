@@ -6,11 +6,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { DesignEntry } from "@/lib/design-gallery";
 import { useDesignEntries } from "@/lib/use-design-entries";
 import { LivePreviewPanel } from "@/components/gallery/LivePreviewPanel";
-import { glassCard } from "@/lib/tokens";
+import { glassCard, glassPill } from "@/lib/tokens";
 import { easing } from "@/lib/motion";
 import { useLanguage } from "@/lib/language";
 
 type SourceFilter = "all" | DesignEntry["source"];
+
+function sourceLabel(source: DesignEntry["source"], t: (path: string) => string) {
+  if (source === "iza") return t("gallery.filterIza");
+  if (source === "color-reference") return t("gallery.filterColorReference");
+  return t("gallery.filterSuperdesign");
+}
 
 /**
  * The AI intake chat's references question can open this instead of the
@@ -34,6 +40,9 @@ export function ReferencePickerModal({
 
   const normalizedQuery = query.trim().toLowerCase();
   const visible = all.filter((e) => {
+    // "All" means design references — Color Reference (a palette, not a
+    // design) only shows under its own tab, same rule as the main gallery.
+    if (activeSource === "all" && e.source === "color-reference") return false;
     if (activeSource !== "all" && e.source !== activeSource) return false;
     if (!normalizedQuery) return true;
     return e.title.toLowerCase().includes(normalizedQuery) || e.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
@@ -69,7 +78,7 @@ export function ReferencePickerModal({
           &times;
         </button>
 
-        <div className="overflow-y-auto p-6">
+        <div className="scrollbar-hide overflow-y-auto p-6">
           <AnimatePresence mode="wait">
             {!selected ? (
               <motion.div
@@ -83,27 +92,21 @@ export function ReferencePickerModal({
                 <h2 className="pr-10 font-display text-xl font-semibold">{t("gallery.heading")}</h2>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="overflow-x-auto">
-                    <div className={`inline-flex w-fit shrink-0 items-center gap-1 rounded-full p-1 ${glassCard}`}>
-                      {(["all", "iza", "superdesign"] as SourceFilter[]).map((source) => (
-                        <button
-                          key={source}
-                          type="button"
-                          onClick={() => setActiveSource(source)}
-                          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                            activeSource === source
-                              ? "bg-primary text-primary-contrast"
-                              : "text-secondary hover:text-on-surface"
-                          }`}
-                        >
-                          {source === "all"
-                            ? t("showcase.all")
-                            : source === "iza"
-                              ? t("gallery.filterIza")
-                              : t("gallery.filterSuperdesign")}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+                    {(["all", "iza", "superdesign", "color-reference"] as SourceFilter[]).map((source) => (
+                      <button
+                        key={source}
+                        type="button"
+                        onClick={() => setActiveSource(source)}
+                        className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                          activeSource === source
+                            ? "bg-primary text-primary-contrast"
+                            : `text-secondary hover:text-on-surface ${glassPill}`
+                        }`}
+                      >
+                        {source === "all" ? t("showcase.all") : sourceLabel(source, t)}
+                      </button>
+                    ))}
                   </div>
 
                   <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 ${glassCard}`}>
@@ -121,23 +124,46 @@ export function ReferencePickerModal({
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {visible.map((entry) => (
+                  {visible.map((entry, index) => (
                     <button
                       key={entry.id}
                       type="button"
                       onClick={() => setSelected(entry)}
                       className={`block min-w-0 overflow-hidden rounded-lg text-left transition-colors hover:border-primary ${glassCard}`}
                     >
-                      <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
-                        {entry.thumbnailUrl && (
-                          <Image src={entry.thumbnailUrl} alt={entry.title} fill className="object-cover object-top" />
-                        )}
-                      </div>
+                      {entry.source === "color-reference" && entry.colors ? (
+                        <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
+                          {entry.colors.map((hex, i) => (
+                            <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
+                          {entry.thumbnailUrl && (
+                            <Image
+                              src={entry.thumbnailUrl}
+                              alt={entry.title}
+                              fill
+                              sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 300px"
+                              priority={index < 3}
+                              className="object-cover object-top"
+                            />
+                          )}
+                        </div>
+                      )}
                       <div className="flex items-center justify-between gap-3 p-4">
                         <p className="min-w-0 truncate font-display text-sm font-semibold">{entry.title}</p>
-                        <p className="shrink-0 text-[10px] uppercase tracking-wide text-secondary">
-                          {entry.source === "iza" ? t("gallery.filterIza") : t("gallery.filterSuperdesign")}
-                        </p>
+                        {entry.source === "color-reference" && entry.accentColor ? (
+                          <span
+                            className="h-3 w-3 shrink-0 rounded-full"
+                            style={{ backgroundColor: entry.accentColor }}
+                            aria-hidden
+                          />
+                        ) : (
+                          <p className="shrink-0 text-[10px] uppercase tracking-wide text-secondary">
+                            {sourceLabel(entry.source, t)}
+                          </p>
+                        )}
                       </div>
                     </button>
                   ))}
@@ -163,26 +189,26 @@ export function ReferencePickerModal({
                 <div className={`rounded-lg p-5 ${glassCard}`}>
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-secondary">
-                        {selected.source === "iza" ? t("gallery.filterIza") : t("gallery.filterSuperdesign")}
-                      </p>
+                      <p className="text-xs uppercase tracking-wide text-secondary">{sourceLabel(selected.source, t)}</p>
                       <h3 className="mt-2 font-display text-2xl font-semibold">{selected.title}</h3>
                       <p className="mt-2 max-w-144 text-sm text-on-surface">{selected.description}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => copyPrompt(selected)}
-                      className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-border-subtle px-4 text-xs font-medium text-on-surface transition-colors hover:border-primary"
-                    >
-                      {t("gallery.copyPrompt")}
-                    </button>
+                    {selected.source !== "color-reference" && (
+                      <button
+                        type="button"
+                        onClick={() => copyPrompt(selected)}
+                        className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-border-subtle px-4 text-xs font-medium text-on-surface transition-colors hover:border-primary"
+                      >
+                        {t("gallery.copyPrompt")}
+                      </button>
+                    )}
                   </div>
 
                   {selected.creator && (
                     <div className="mt-4 flex items-center gap-3">
                       {selected.creator.avatarUrl && (
                         <div className="relative h-7 w-7 overflow-hidden rounded-full">
-                          <Image src={selected.creator.avatarUrl} alt="" fill className="object-cover" />
+                          <Image src={selected.creator.avatarUrl} alt="" fill sizes="28px" className="object-cover" />
                         </div>
                       )}
                       <span className="text-xs text-secondary">{selected.creator.name}</span>
@@ -200,7 +226,28 @@ export function ReferencePickerModal({
                   )}
                 </div>
 
-                <LivePreviewPanel entry={selected} staticPreviewLabel={t("gallery.staticPreview")} />
+                {selected.source === "color-reference" && selected.colors ? (
+                  <div className={`overflow-hidden rounded-lg ${glassCard}`}>
+                    <div className="flex h-32 w-full">
+                      {selected.colors.map((hex, i) => (
+                        <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-4 p-5">
+                      {selected.colors.map((hex, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span
+                            className="h-4 w-4 shrink-0 rounded-full border border-(--glass-border)"
+                            style={{ backgroundColor: hex }}
+                          />
+                          <span className="font-mono text-xs uppercase text-secondary">{hex}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <LivePreviewPanel entry={selected} staticPreviewLabel={t("gallery.staticPreview")} />
+                )}
 
                 <motion.button
                   type="button"

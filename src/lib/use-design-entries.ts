@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { DesignEntry } from "@/lib/design-gallery";
 import { izaDesignEntries } from "@/data/iza-design-entries";
+import { colorReferenceEntries } from "@/data/color-reference-entries";
 
 /**
  * Shared Iza + Superdesign.dev entry list. Iza entries are always instant
@@ -42,5 +43,5 @@ export function useDesignEntries(immediate = false): DesignEntry[] {
     return () => window.removeEventListener("scroll", onScroll);
   }, [loadTriggered, immediate]);
 
-  return [...izaDesignEntries, ...superdesignEntries];
+  return [...izaDesignEntries, ...colorReferenceEntries, ...superdesignEntries];
 }

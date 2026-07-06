@@ -36,7 +36,6 @@ const BRUSH_RADIUS = 0.01;
 const TRAIL_DECAY = 0.97;
 const DPR_MIN = 1;
 const DPR_MAX = 1.75;
-const FPS_CAP = 60;
 const RESIZE_DEBOUNCE_MS = 150;
 
 const VERTEX_SHADER = `
@@ -224,7 +223,6 @@ export function AmbientCanvas({
     let disposed = false;
     let raf = 0;
     let paused = false;
-    let lastFrameAt = 0;
     const startedAt = performance.now();
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -319,9 +317,6 @@ export function AmbientCanvas({
         function loop(now: number) {
           if (disposed || paused) return;
           raf = requestAnimationFrame(loop);
-          const elapsed = now - lastFrameAt;
-          if (elapsed < 1000 / FPS_CAP) return;
-          lastFrameAt = now;
           renderFrame(now);
         }
 
@@ -337,7 +332,6 @@ export function AmbientCanvas({
             cancelAnimationFrame(raf);
           } else if (!prefersReducedMotion) {
             paused = false;
-            lastFrameAt = 0;
             raf = requestAnimationFrame(loop);
           }
         }
