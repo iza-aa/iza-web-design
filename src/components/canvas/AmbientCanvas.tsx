@@ -187,8 +187,8 @@ const MAIN_FRAGMENT_SHADER = `
     vec2 warp = vec2(fbm(flow + 1.7), fbm(flow + 8.3));
     float n = fbm(flow + warp * 1.6);
 
-    float hue = fract(n * 0.85 + uTime * 0.015);
-    vec3 color = hsv2rgb(vec3(hue, 0.8, 1.0));
+    float gray = mix(0.15, 0.9, n);
+    vec3 color = vec3(gray);
 
     // Base state: every cell is a plain dot (the retro halftone look).
     float baseDot = smoothstep(0.42, 0.28, length(cellLocal));

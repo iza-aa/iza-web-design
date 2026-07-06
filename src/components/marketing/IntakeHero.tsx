@@ -684,7 +684,7 @@ export function IntakeHero({
                 }}
                 placeholder={t("aiIntake.placeholder")}
                 rows={2}
-                className="w-full resize-none bg-transparent text-sm text-on-surface placeholder:text-secondary focus:outline-none"
+                className="w-full resize-none bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm"
               />
               <div className="mt-3 flex items-center justify-between">
                 <ModelPicker value={model} onChange={setModel} />
@@ -799,7 +799,7 @@ export function IntakeHero({
                     }}
                     placeholder={t("aiIntake.placeholder")}
                     rows={1}
-                    className="w-full resize-none bg-transparent text-sm text-on-surface placeholder:text-secondary focus:outline-none"
+                    className="w-full resize-none bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm"
                   />
                   <div className="mt-3 flex items-center justify-between">
                     <ModelPicker value={model} onChange={setModel} />
