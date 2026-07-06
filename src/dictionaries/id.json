@@ -27,7 +27,8 @@
     "briefSentTo": "Brief dikirim ke {name}",
     "fields": {
       "name": "Nama",
-      "email": "Email",
+      "email": "Kontak",
+      "contact": "Email, nomor WhatsApp, atau cara lain untuk menghubungi Anda",
       "projectType": "Jenis proyek",
       "budgetRange": "Kisaran anggaran",
       "timeline": "Linimasa",

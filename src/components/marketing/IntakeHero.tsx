@@ -204,20 +204,20 @@ function ContactCard({
   prompt,
   onAnswer,
   nameLabel,
-  emailLabel,
+  contactLabel,
 }: {
   prompt: string;
   onAnswer: (text: string) => void;
   nameLabel: string;
-  emailLabel: string;
+  contactLabel: string;
 }) {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const ready = name.trim().length > 0 && email.trim().length > 0;
+  const [contact, setContact] = useState("");
+  const ready = name.trim().length > 0 && contact.trim().length > 0;
 
   function submit() {
     if (!ready) return;
-    onAnswer(`${nameLabel}: ${name.trim()}\n${emailLabel}: ${email.trim()}`);
+    onAnswer(`${nameLabel}: ${name.trim()}\n${contactLabel}: ${contact.trim()}`);
   }
 
   return (
@@ -240,13 +240,12 @@ function ContactCard({
           className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
         />
         <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") submit();
           }}
-          type="email"
-          placeholder={emailLabel}
+          placeholder={contactLabel}
           className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-sm text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary"
         />
       </div>
@@ -435,7 +434,7 @@ export function IntakeHero({
     ? emailStatus === "sent"
       ? 4
       : 3
-    : latestSummary
+    : latestSummary || activeQuestion?.kind === "contact"
       ? 2
       : messages.length > 2
         ? 1
@@ -491,12 +490,12 @@ export function IntakeHero({
     bottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
   }, [messages, busy, composerHeight]);
 
-  // Auto-close the card on scroll down, auto-reopen on scroll up. Ignores
-  // banned state (that early-returns before this ever mounts) and uses a
-  // small threshold so tiny scroll jitter (mobile rubber-banding) doesn't
-  // toggle it; only closes past a minimum scrollY so it doesn't hide itself
-  // over a 1px nudge right at the top of the page.
+  // Auto-close the card on scroll down, auto-reopen on scroll up — only
+  // before a conversation has started. Once `started` is true this is
+  // disabled, since scrolling through the chat transcript itself would
+  // otherwise keep firing scroll-down and close the card mid-conversation.
   useEffect(() => {
+    if (started) return;
     let lastY = window.scrollY;
     let ticking = false;
     function onScroll() {
@@ -513,7 +512,7 @@ export function IntakeHero({
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [setAutoVisible]);
+  }, [setAutoVisible, started]);
 
   useEffect(() => {
     if (sessionCloseTick === 0) return;
@@ -562,14 +561,23 @@ export function IntakeHero({
       setInput("");
       return;
     }
-    if (messages.length === 0 && detectIndonesian(trimmed)) setLocale("id");
+    // Checked on every message (not just the first) — one-way switch only
+    // (never forces back to English), so it still catches a client who
+    // opened with an English quick-action button but writes in Indonesian
+    // from their first typed message onward.
+    if (detectIndonesian(trimmed)) setLocale("id");
     sendMessage({ text: trimmed });
     setInput("");
   }
 
   function selectReference(entry: DesignEntry) {
     setPickerOpen(false);
-    submit(`Referensi: ${entry.title} — ${entry.description} (${window.location.origin}/${entry.slug})`);
+    const url = `${window.location.origin}/${entry.slug}`;
+    // Full description/url ride along in a hidden ```refcontext``` block (the
+    // model reads it, see INTAKE_SYSTEM_PROMPT) — the visible bubble only
+    // shows the short title line, not the whole gallery blurb + link.
+    const payload = JSON.stringify({ title: entry.title, description: entry.description, url });
+    submit(`${t("aiIntake.fields.references")}: ${entry.title}\n\`\`\`refcontext\n${payload}\n\`\`\``);
   }
 
   function renderBubble(m: (typeof messages)[number]) {
@@ -603,10 +611,11 @@ export function IntakeHero({
         </div>
       );
     }
+    const { clean } = extractBlock<unknown>(text, "refcontext");
     return (
       <div key={m.id} className="flex justify-end">
         <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5">
-          <p className="text-sm font-medium text-primary-contrast">{text}</p>
+          <p className="text-sm font-medium text-primary-contrast">{clean}</p>
         </div>
       </div>
     );
@@ -699,16 +708,21 @@ export function IntakeHero({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 pb-4 text-left"
+          className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 text-left"
+          style={{ paddingBottom: composerHeight + 112 + 8 }}
         >
           {messages.map((m) => renderBubble(m))}
           {busy && <p className="text-xs text-secondary">{t("aiIntake.thinking")}</p>}
           {error && <p className="text-xs text-error">{t("aiIntake.rateLimited")}</p>}
-          {/* scrollIntoView respects scroll-margin, so this is what actually
-              keeps the last message clear of the fixed composer/QuestionCard
-              below it — a parent padding-bottom does NOT help here, since
-              scrollIntoView aligns *this element's* edge to the viewport,
-              ignoring box content that comes after it in the DOM. */}
+          {/* scrollIntoView respects scroll-margin, so this keeps the auto
+              scroll-to-bottom (on new message) landing clear of the fixed
+              composer/QuestionCard below it. The parent's paddingBottom
+              above (a tighter version of the same value) is what keeps a
+              bubble clear of the composer at rest — e.g. after a manual
+              scroll to the true document bottom, which scrollMargin alone
+              doesn't cover since it only matters while scrollIntoView is
+              animating; that one keeps some extra breathing room since it's
+              a one-off landing spot, not permanent empty page space. */}
           <div ref={bottomRef} style={{ scrollMarginBottom: composerHeight + 112 + 32 }} />
           </motion.div>
         )}
@@ -732,7 +746,7 @@ export function IntakeHero({
                   prompt={activeQuestion.prompt}
                   onAnswer={submit}
                   nameLabel={t("aiIntake.fields.name")}
-                  emailLabel={t("aiIntake.fields.email")}
+                  contactLabel={t("aiIntake.fields.contact")}
                 />
               ) : activeQuestion ? (
                 <QuestionCard

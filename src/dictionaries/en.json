@@ -27,7 +27,8 @@
     "briefSentTo": "Brief sent to {name}",
     "fields": {
       "name": "Name",
-      "email": "Email",
+      "email": "Contact",
+      "contact": "Email, WhatsApp number, or any way to reach you",
       "projectType": "Project type",
       "budgetRange": "Budget range",
       "timeline": "Timeline",
