@@ -8,7 +8,7 @@ import { ThemeProvider, themeInitScript } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/language";
 
 export const metadata: Metadata = {
-  title: "IZA UI",
+  title: "izadesign",
   description: "Design, code, and AI studio for custom websites.",
 };
 

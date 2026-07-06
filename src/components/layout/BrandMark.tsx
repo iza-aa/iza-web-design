@@ -22,7 +22,7 @@ export function BrandMark() {
       className="fixed left-4 top-4 z-40 flex items-center gap-2 sm:left-6 sm:top-6"
       aria-label="IZA UI — home"
     >
-      <Image src={lefttoplogo} alt="" width={47} height={24} className="h-6 w-auto sm:h-7" priority />
+      <Image src={lefttoplogo} alt="" width={47} height={24} className="h-3 w-auto sm:h-4" priority />
       <span className="font-display text-sm font-semibold text-on-surface sm:text-base">
         web design
         <AnimatePresence mode="wait">

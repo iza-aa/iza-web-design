@@ -400,6 +400,12 @@ export function IntakeHero({
   const sentRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Guards the scroll-driven auto-close effect below against the mobile
+  // on-screen keyboard: focusing the textarea shrinks the visual viewport,
+  // which makes the browser auto-scroll the page to keep the input visible
+  // — that scroll isn't the user scrolling, so it must not toggle the card.
+  const composerFocusedRef = useRef(false);
+  const scrollLastYRef = useRef(0);
   const [composerEl, setComposerEl] = useState<HTMLDivElement | null>(null);
   const [composerHeight, setComposerHeight] = useState(0);
   const { close, closed, sessionCloseTick, setAutoVisible } = useIntakeVisibility();
@@ -496,17 +502,21 @@ export function IntakeHero({
   // otherwise keep firing scroll-down and close the card mid-conversation.
   useEffect(() => {
     if (started) return;
-    let lastY = window.scrollY;
+    scrollLastYRef.current = window.scrollY;
     let ticking = false;
     function onScroll() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const y = window.scrollY;
-        const delta = y - lastY;
-        if (delta > 8 && y > 80) setAutoVisible(false);
-        else if (delta < -8) setAutoVisible(true);
-        if (Math.abs(delta) > 8) lastY = y;
+        // Ignore scroll caused by the mobile keyboard opening/closing while
+        // the textarea is focused — see composerFocusedRef above.
+        if (!composerFocusedRef.current) {
+          const y = window.scrollY;
+          const delta = y - scrollLastYRef.current;
+          if (delta > 8 && y > 80) setAutoVisible(false);
+          else if (delta < -8) setAutoVisible(true);
+          if (Math.abs(delta) > 8) scrollLastYRef.current = y;
+        }
         ticking = false;
       });
     }
@@ -664,6 +674,13 @@ export function IntakeHero({
                     e.preventDefault();
                     submit(input);
                   }
+                }}
+                onFocus={() => {
+                  composerFocusedRef.current = true;
+                }}
+                onBlur={() => {
+                  composerFocusedRef.current = false;
+                  scrollLastYRef.current = window.scrollY;
                 }}
                 placeholder={t("aiIntake.placeholder")}
                 rows={2}
