@@ -30,6 +30,14 @@ import { useEffect, useRef } from "react";
  * hover-enter (rejected — needed to stay brush-shaped and fade OUT).
  */
 
+// Coordinates with site-loader.ts's blocking init script — see that file's
+// comment for why the loader needs to know about this component's async
+// WebGL setup instead of just relying on the browser's `load` event.
+function markAmbientReady() {
+  (window as Window & { __ambientState?: string }).__ambientState = "ready";
+  window.dispatchEvent(new Event("ambient-canvas-ready"));
+}
+
 const DOT_PX = 5.5;
 const OPACITY = 0.42;
 const BRUSH_RADIUS = 0.01;
@@ -217,8 +225,10 @@ export function AmbientCanvas({
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isLowPower = (navigator.hardwareConcurrency || 4) <= 2;
     if (isLowPower || typeof window.WebGLRenderingContext === "undefined") {
+      markAmbientReady(); // no canvas coming — don't leave the site-loader waiting on it
       return; // low-power fallback: no canvas mounted, static gradient backdrop shows through
     }
+    (window as Window & { __ambientState?: string }).__ambientState = "pending";
 
     let disposed = false;
     let raf = 0;
@@ -325,6 +335,7 @@ export function AmbientCanvas({
         } else {
           raf = requestAnimationFrame(loop);
         }
+        markAmbientReady();
 
         function handleVisibility() {
           if (document.hidden) {
@@ -404,6 +415,7 @@ export function AmbientCanvas({
       })
       .catch(() => {
         // WebGL/three failed to initialize — leave the static gradient as the only backdrop
+        markAmbientReady();
       });
 
     return () => {
