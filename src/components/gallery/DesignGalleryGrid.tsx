@@ -6,7 +6,7 @@ import Image from "next/image";
 import { AnimatePresence, motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import type { DesignEntry } from "@/lib/design-gallery";
 import { useDesignEntries } from "@/lib/use-design-entries";
-import { glassCard, glassPill } from "@/lib/tokens";
+import { glassCardOpaque, glassPillOpaque } from "@/lib/tokens";
 import { useLanguage } from "@/lib/language";
 import { fadeUp, group, stagger, reducedGroup, reducedFade } from "@/lib/motion";
 
@@ -56,7 +56,7 @@ function GalleryCard({
     >
       <Link
         href={`/${entry.slug}`}
-        className={`block overflow-hidden rounded-lg transition-colors hover:border-primary ${glassCard}`}
+        className={`block overflow-hidden rounded-lg transition-colors hover:border-primary ${glassCardOpaque}`}
       >
         {entry.source === "color-reference" && entry.colors ? (
           <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
@@ -144,7 +144,7 @@ export function DesignGalleryGrid() {
               className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                 activeSource === source
                   ? "bg-primary text-primary-contrast"
-                  : `text-secondary hover:text-on-surface ${glassPill}`
+                  : `text-secondary hover:text-on-surface ${glassPillOpaque}`
               }`}
             >
               {source === "all" ? t("showcase.all") : sourceLabel(source, t)}
@@ -152,7 +152,7 @@ export function DesignGalleryGrid() {
           ))}
         </div>
 
-        <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 ${glassCard}`}>
+        <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 ${glassCardOpaque}`}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-secondary">
             <circle cx="11" cy="11" r="7" />
             <path d="M21 21l-4.35-4.35" strokeLinecap="round" />

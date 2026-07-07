@@ -42,12 +42,13 @@
   --spacing-xxl: 96px;
 
   /*
-   * Fallback stacks for now — no network fetch required at build time.
-   * Swap in next/font/google (or self-hosted font files) once your build
-   * environment has normal internet access; see README.md.
+   * Geist (next/font/google, self-hosted at build time — see the `geist`
+   * const in src/app/layout.tsx, whose CSS variable this references) —
+   * Vercel's own sans, same family shadcn/ui's docs site uses (owner's
+   * reference, 2026-07-07). Both roles share it — no separate display face.
    */
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Baloo 2", system-ui, sans-serif;
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-display: var(--font-geist), system-ui, sans-serif;
 }
 
 /*
@@ -99,7 +100,16 @@ html {
 }
 
 body {
-  @apply bg-surface text-on-surface overflow-x-hidden transition-colors duration-300;
+  /*
+   * Tailwind v4's Preflight base font rule uses its own internal
+   * `--default-font-family` token, not our `--font-sans` theme variable —
+   * setting `--font-sans` in @theme only generates the `.font-sans`
+   * utility class, it does NOT change the document's actual default font.
+   * Anything without an explicit font-sans/font-display class was falling
+   * back to the browser's plain sans-serif instead of Lora. Setting it
+   * directly here makes Lora the real inherited default for every element.
+   */
+  @apply bg-surface text-on-surface overflow-x-hidden font-sans transition-colors duration-300;
 }
 
 /* Keeps a container scrollable while hiding the visible scrollbar track/thumb. */

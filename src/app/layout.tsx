@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { Geist } from "next/font/google";
 import "./globals.css";
+
+const geist = Geist({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-geist",
+  display: "swap",
+});
 import { BrandMark } from "@/components/layout/BrandMark";
 import { DockNav } from "@/components/layout/DockNav";
 import { PreferencesBar } from "@/components/layout/PreferencesBar";
@@ -19,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={geist.variable}>
       {/*
         Blocking anti-FOUC script: reads the saved theme (or system
         preference) and applies the `.light` class before first paint, so

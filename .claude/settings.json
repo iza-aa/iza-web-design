@@ -47,7 +47,18 @@
       "Bash(curl -s http://localhost:3000/_next/static/css/*.css)",
       "Bash(curl -s http://localhost:3000/docs)",
       "Bash(curl -s \"http://localhost:3000/_next/static/chunks/src_app_globals_162hn9o.css\")",
-      "Bash(grep -o '.\\\\{0,20\\\\}z-80.\\\\{0,60\\\\}')"
+      "Bash(grep -o '.\\\\{0,20\\\\}z-80.\\\\{0,60\\\\}')",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/home.html -w \"%{http_code}\\\\n\")",
+      "Bash(tr '\\\\n' ' ')",
+      "Bash(grep -o '.\\\\{0,10\\\\}l-izAG__variable[^}]*}' /tmp/full_flat.css)",
+      "Bash(grep -o '.\\\\{0,10\\\\}l-izAG__className[^}]*}' /tmp/full_flat.css)",
+      "Bash(grep -bo '.\\\\{0,60\\\\}default-font-family[^;]*' /tmp/full_flat.css)",
+      "Bash(curl -s -I \"http://localhost:3000/_next/static/media/e7150917543fc9da-s.0mybutugvu-lq.woff2\")",
+      "Bash(grep -oE 'unicode-range:[^;]{1,300};' /tmp/full_flat.css)",
+      "Bash(curl -s -o /tmp/testfont.woff2 -w \"size: %{size_download} bytes, http: %{http_code}\\\\n\" \"http://localhost:3000/_next/static/media/e1ccd2766b08c828-s.15gdzqknx46iu.woff2\")",
+      "Bash(xxd /tmp/testfont.woff2)",
+      "Bash(powershell -Command \"Get-Process -Id 32020 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName\")",
+      "Bash(taskkill //PID 30316 //F)"
     ],
     "additionalDirectories": [
       "d:\\iza-web-design",

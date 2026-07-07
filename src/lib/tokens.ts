@@ -101,6 +101,10 @@ export const glassCardOpaque =
 // shadow reads as an odd floating-box halo rather than a real elevated card.
 export const glassPill = "border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl will-change-[backdrop-filter]";
 
+// No-blur variant of glassPill — same border/bg swap as glassCardOpaque, for
+// callers that want the flat-opaque look on a small inline chip.
+export const glassPillOpaque = "border border-(--glass-border) bg-(--glass-strong-bg)";
+
 // Stronger variant — swaps in --glass-strong-bg (a much less transparent
 // fill) for overlays that sit on top of dense content and need to stay
 // legible (dropdown menus, popovers), where glassCard's regular --glass-bg
