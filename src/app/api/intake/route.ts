@@ -1,10 +1,7 @@
 import {
   streamText,
-  generateText,
   convertToModelMessages,
   createUIMessageStreamResponse,
-  APICallError,
-  RetryError,
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
@@ -21,17 +18,8 @@ export const maxDuration = 30;
 // governs a Node.js serverless function's region, not this export alone).
 export const preferredRegion = ["sin1"];
 
-function isQuotaError(err: unknown): boolean {
-  if (RetryError.isInstance(err)) {
-    return err.errors.some(isQuotaError) || isQuotaError(err.lastError);
-  }
-  if (!APICallError.isInstance(err)) return false;
-  if (err.statusCode === 429 || err.statusCode === 503) return true;
-  return /quota|rate.?limit|resource.*exhaust/i.test(err.responseBody ?? err.message);
-}
-
 // GEMINI_API_KEY holds one or more comma-separated keys — one per Google
-// account. Each account has its own free-tier quota, so cycling through
+// account. Each account has its own free-tier quota, so racing across
 // accounts (not just models) multiplies how much traffic "auto" can absorb
 // before a client ever sees a rate-limited message.
 function getApiKeys(): string[] {
@@ -39,6 +27,49 @@ function getApiKeys(): string[] {
     .split(",")
     .map((k) => k.trim())
     .filter(Boolean);
+}
+
+type PeekedStream = {
+  buffered: UIMessageChunk[];
+  reader: ReadableStreamDefaultReader<UIMessageChunk>;
+};
+
+// Runs one (account, model) combo and peeks its stream's leading chunks
+// before declaring it a winner: "start"/"start-step" are always emitted
+// first regardless of outcome, then either a real content chunk (success)
+// or an "error" chunk (failure). Buffered chunks get replayed into the
+// client-facing stream on a win, so no output is lost.
+async function attempt(
+  google: ReturnType<typeof createGoogleGenerativeAI>,
+  candidate: ModelId,
+  system: string,
+  messages: Awaited<ReturnType<typeof convertToModelMessages>>,
+  signal: AbortSignal,
+): Promise<PeekedStream> {
+  let streamErr: unknown;
+  const uiStream = streamText({
+    model: google(candidate),
+    system,
+    messages,
+    maxRetries: 0,
+    abortSignal: signal,
+  }).toUIMessageStream({
+    onError: (err) => {
+      streamErr = err;
+      return err instanceof Error ? err.message : "An error occurred.";
+    },
+  });
+
+  const reader = uiStream.getReader();
+  const buffered: UIMessageChunk[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffered.push(value);
+    if (value.type === "error") throw streamErr;
+    if (value.type !== "start" && value.type !== "start-step") break;
+  }
+  return { buffered, reader };
 }
 
 export async function POST(req: Request) {
@@ -60,66 +91,38 @@ export async function POST(req: Request) {
   const modelMessages = await convertToModelMessages(messages);
   const system = INTAKE_SYSTEM_PROMPT;
 
-  // Explicit model choice: locked to that model, but still cycles accounts —
+  // Explicit model choice: locked to that model, but still races accounts —
   // the client picked the model deliberately, not the account behind it.
   const candidateModels: ModelId[] =
     requestedModel && requestedModel !== "auto" && isModelId(requestedModel) ? [requestedModel] : [...AUTO_FALLBACK_ORDER];
 
-  const combos = clients.flatMap((google) => candidateModels.map((candidate) => ({ google, candidate })));
-
-  // maxRetries: 0 — our own (account × model) loop is the retry strategy, so a
-  // single failed attempt per candidate should move on immediately instead of
-  // the SDK's default 3x backoff burning more of that account's quota first.
+  // Race accounts (independent quotas) in parallel, but walk models one
+  // tier at a time — firing every (account, model) combo at once would put
+  // up to `candidateModels.length` concurrent requests on the SAME key,
+  // which trips Google's per-key concurrent-request limit and makes the
+  // whole tier look quota-exhausted even when it isn't. Only fall through to
+  // the next model once the entire current tier has failed on every account.
   let lastError: unknown;
-  for (const [i, { google, candidate }] of combos.entries()) {
-    const isLastCombo = i === combos.length - 1;
+  for (const candidate of candidateModels) {
+    const controllers = clients.map(() => new AbortController());
+    const race = clients.map((google, i) =>
+      attempt(google, candidate, system, modelMessages, controllers[i].signal).then((result) => ({ i, result })),
+    );
 
-    // Skip the ping when there's nowhere left to fall back to anyway (the
-    // common single-key, single-model case pays zero extra latency for this).
-    if (!isLastCombo) {
-      try {
-        await generateText({ model: google(candidate), prompt: "ping", maxOutputTokens: 1, maxRetries: 0 });
-      } catch (err) {
-        lastError = err;
-        if (isQuotaError(err)) continue;
-      }
+    let winner: { i: number; result: PeekedStream } | undefined;
+    try {
+      winner = await Promise.any(race);
+    } catch (err) {
+      const aggregate = err as AggregateError;
+      lastError = aggregate.errors?.[aggregate.errors.length - 1] ?? err;
+      continue;
     }
 
-    // The ping above only proves the account/model can accept a request — a
-    // free-tier quota can still be blown by the real (much larger) prompt
-    // even when a 1-token ping just succeeded. So peek the real stream's
-    // leading chunks before committing this Response to the client: "start"/
-    // "start-step" are always emitted first regardless of outcome, then
-    // either a real content chunk (success) or an "error" chunk (failure).
-    // Buffered chunks get replayed into the client-facing stream either way,
-    // so no output is lost — only the choice of which combo serves it changes.
-    let streamErr: unknown;
-    const uiStream = streamText({ model: google(candidate), system, messages: modelMessages, maxRetries: 0 }).toUIMessageStream({
-      onError: (err) => {
-        streamErr = err;
-        return err instanceof Error ? err.message : "An error occurred.";
-      },
-    });
-    const reader = uiStream.getReader();
-    const buffered: UIMessageChunk[] = [];
-    let failed = false;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffered.push(value);
-      if (value.type === "error") {
-        failed = true;
-        break;
-      }
-      if (value.type !== "start" && value.type !== "start-step") break;
+    for (const [i, controller] of controllers.entries()) {
+      if (i !== winner.i) controller.abort();
     }
 
-    if (failed) {
-      lastError = streamErr;
-      if (!isLastCombo && isQuotaError(streamErr)) continue;
-      throw streamErr;
-    }
-
+    const { buffered, reader } = winner.result;
     const rebuilt = new ReadableStream<UIMessageChunk>({
       start(controller) {
         for (const chunk of buffered) controller.enqueue(chunk);

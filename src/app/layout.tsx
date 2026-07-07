@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import Image from "next/image";
+import lefttoplogo from "@/assets/logo/lefttoplogo.png";
+import lefttoplogolight from "@/assets/logo/lefttoplogolight.png";
 import "./globals.css";
 
 const geist = Geist({
@@ -59,7 +62,25 @@ export default function RootLayout({
       */}
       <body suppressHydrationWarning className="pb-24">
         <div id="site-loader" aria-hidden="true">
-          <span className="font-display text-lg font-semibold text-on-surface">IZA</span>
+          <div className="site-loader-brand">
+            <Image
+              src={lefttoplogo}
+              alt=""
+              width={94}
+              height={48}
+              priority
+              className="site-loader-logo site-loader-logo-dark"
+            />
+            <Image
+              src={lefttoplogolight}
+              alt=""
+              width={94}
+              height={48}
+              priority
+              className="site-loader-logo site-loader-logo-light"
+            />
+            <span className="site-loader-brandtext">design!?</span>
+          </div>
           <div className="site-loader-dots">
             <span className="site-loader-dot" />
             <span className="site-loader-dot" />

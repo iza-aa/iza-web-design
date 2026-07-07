@@ -137,14 +137,52 @@ body {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: var(--color-surface);
+  background: #000000;
   transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+html.light #site-loader {
+  background: #ffffff;
 }
 
 html.site-loaded #site-loader {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+#site-loader .site-loader-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#site-loader .site-loader-logo {
+  height: auto;
+  width: 94px;
+}
+
+#site-loader .site-loader-logo-light {
+  display: none;
+}
+
+html.light #site-loader .site-loader-logo-dark {
+  display: none;
+}
+
+html.light #site-loader .site-loader-logo-light {
+  display: block;
+}
+
+#site-loader .site-loader-brandtext {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+html.light #site-loader .site-loader-brandtext {
+  color: #000000;
 }
 
 #site-loader .site-loader-dots {
@@ -156,8 +194,12 @@ html.site-loaded #site-loader {
   width: 8px;
   height: 8px;
   border-radius: 9999px;
-  background: var(--color-primary);
+  background: #ffffff;
   animation: site-loader-bounce 1.1s ease-in-out infinite;
+}
+
+html.light #site-loader .site-loader-dot {
+  background: #000000;
 }
 
 #site-loader .site-loader-dot:nth-child(2) {
