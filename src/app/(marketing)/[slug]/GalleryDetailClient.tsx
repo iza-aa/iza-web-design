@@ -10,7 +10,7 @@ import { colorReferenceEntries } from "@/data/color-reference-entries";
 import { LivePreviewPanel } from "@/components/gallery/LivePreviewPanel";
 import { useLanguage } from "@/lib/language";
 import { fadeUp, group, stagger, reducedGroup, reducedFade } from "@/lib/motion";
-import { glassCard } from "@/lib/tokens";
+import { glassCardOpaque } from "@/lib/tokens";
 
 function sourceLabel(source: DesignEntry["source"], t: (path: string) => string) {
   if (source === "iza") return t("gallery.filterIza");
@@ -72,7 +72,7 @@ export function GalleryDetailClient({ slug }: { slug: string }) {
         </Link>
       </motion.div>
 
-      <motion.div variants={fade} className={`rounded-lg p-6 ${glassCard}`}>
+      <motion.div variants={fade} className={`rounded-lg p-6 ${glassCardOpaque}`}>
         <div>
           <p className="text-xs uppercase tracking-wide text-secondary">{sourceLabel(entry.source, t)}</p>
           <h1 className="mt-2 font-display text-3xl font-semibold">{entry.title}</h1>
@@ -112,7 +112,7 @@ export function GalleryDetailClient({ slug }: { slug: string }) {
       </motion.div>
 
       {entry.source === "color-reference" && entry.colors ? (
-        <motion.div variants={fade} className={`overflow-hidden rounded-lg ${glassCard}`}>
+        <motion.div variants={fade} className={`overflow-hidden rounded-lg ${glassCardOpaque}`}>
           <div className="flex h-40 w-full sm:h-56">
             {entry.colors.map((hex, i) => (
               <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
