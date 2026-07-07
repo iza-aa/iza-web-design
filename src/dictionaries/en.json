@@ -124,5 +124,126 @@
   "notFound": {
     "title": "Page not found",
     "body": "The page you're looking for doesn't exist or may have moved."
+  },
+  "docs": {
+    "nav": {
+      "introduction": "Introduction",
+      "installation": "Installation",
+      "theming": "Theming",
+      "components": "Components",
+      "menu": "Menu"
+    },
+    "groups": {
+      "layout": "Layout",
+      "canvas": "Canvas"
+    },
+    "codeBlock": {
+      "copy": "Copy",
+      "copied": "Copied!",
+      "viewCode": "View Code"
+    },
+    "componentPreview": {
+      "replay": "Replay"
+    },
+    "intro": {
+      "title": "Introduction",
+      "bodyPrefix": "Every component documented here is the exact code running on this site's marketing pages, not a separate demo copy — and every one of them is genuinely non-trivial to rebuild from scratch, which is why it earned a page here at all. Install the ",
+      "bodyMid": " npm package for precompiled, ready-to-use versions, or copy the source directly from each page's ",
+      "bodySuffix": " tab if you'd rather own and customize it yourself.",
+      "howItWorksTitle": "How the docs work",
+      "howItWorksPrefix": "Each component page shows a live preview of the real component, a ",
+      "howItWorksMid": " tab with the exact source (copy button included), an installation snippet, and a props table. There's no interactive prop playground by design — a clean static preview plus copyable code covers most real use.",
+      "startHereTitle": "Start here",
+      "installationDesc": "the npm package, or what to paste into a project if you'd rather copy the source.",
+      "themingDesc": "the full color/radius/spacing token table."
+    },
+    "installation": {
+      "title": "Installation",
+      "subtitle": "Two ways to get these components, pick whichever fits — the npm package for the fastest setup, or copy the source if you want to own and customize it yourself.",
+      "option1Title": "Option 1: npm package",
+      "option1Body": "Precompiled CSS ships with the package — no Tailwind config, no token setup, nothing else below on this page applies.",
+      "installLabel": "Install",
+      "usageLabel": "Usage",
+      "option2Title": "Option 2: copy the source",
+      "option2Prefix": "Copy the component file you want from ",
+      "option2Mid": " (each component page's ",
+      "option2Mid2": " tab has the exact source) into your own project, and make sure the two things below already exist.",
+      "step1Title": "1. Tailwind CSS v4",
+      "step1Prefix": "Every component is styled with Tailwind utility classes only — no CSS modules, no styled-components. You need Tailwind v4's CSS-first config (",
+      "step1Suffix": " in your global stylesheet).",
+      "step2Title": "2. Design tokens",
+      "step2Prefix": "Components reference color tokens like ",
+      "step2Mid": " and ",
+      "step2Mid2": ", not raw hex values. Add these to your own ",
+      "step2Mid3": " block — see the full table on the ",
+      "step2Mid4": " page. Window Card and Dock Item also need the ",
+      "step2Mid5": " variables below and the ",
+      "step2Suffix": " string from ",
+      "step2End": "; Ambient Canvas needs neither.",
+      "themeSnippetLabel": "globals.css"
+    },
+    "theming": {
+      "title": "Theming",
+      "prefix": "Rendered directly from ",
+      "suffix": " — this table is the single source of truth both products (marketing + docs) read from, so a color here can never drift from what's actually shipping.",
+      "colorsTitle": "Colors",
+      "colorsNote": "Dark is the default theme; light overrides via the `.light` class.",
+      "radiusTitle": "Radius",
+      "spacingTitle": "Spacing"
+    },
+    "componentsIndex": {
+      "title": "Components",
+      "bodyPrefix": "Only components with real engineering behind them make it here — nothing a competent dev rebuilds in minutes. All three ship in the ",
+      "bodyMid": " npm package, precompiled CSS included, or copy the source directly from each page's ",
+      "bodySuffix": " tab if you'd rather not take the dependency."
+    },
+    "componentDetail": {
+      "preview": "Preview",
+      "code": "Code",
+      "installation": "Installation",
+      "props": "Props",
+      "accessibility": "Accessibility",
+      "usageLabel": "Usage",
+      "propName": "Prop",
+      "propType": "Type",
+      "propDefault": "Default",
+      "propDescription": "Description"
+    },
+    "components": {
+      "windowCard": {
+        "name": "Window Card",
+        "description": "The frosted-glass 'OS window' — a chrome bar (with a single functional mac-style red close dot when onClose is passed) above a content slot. This is the shell behind the homepage's AI intake card.",
+        "a11y": "The close control is a real <button> with an aria-label — always pass closeLabel with a translated string in localized contexts.",
+        "props": {
+          "children": "Content rendered below the chrome bar.",
+          "onClose": "If provided, renders a functional red close dot. Omit to render the chrome bar without a close control.",
+          "closeLabel": "aria-label for the close button.",
+          "className": "Extra classes merged onto the outer window."
+        }
+      },
+      "dockItem": {
+        "name": "Dock Item",
+        "description": "A single floating-dock tile — hover tooltip, active-state dot indicator, macOS-style magnification driven by boost. Renders as a Link when href is passed, or a button otherwise (used for the AI-chat reopen action).",
+        "a11y": "Tooltip text doubles as the aria-label since the tile has no visible text label of its own.",
+        "props": {
+          "href": "If passed, renders as a next/link Link.",
+          "label": "Tooltip text and aria-label.",
+          "icon": "Icon content, sized to fill the 48×48 tile.",
+          "active": "Shows the small dot indicator underneath.",
+          "onClick": "Used instead of href for action tiles (e.g. reopen).",
+          "boost": "0–1 magnification amount, computed by the parent dock based on hover distance — scales the icon up to 1.4x, lifts it, and adds matching side margin so it doesn't collide with neighbors.",
+          "onHoverStart": "Reported up to the parent dock so it can compute boost values for all items.",
+          "onHoverEnd": "Reported up to the parent dock to clear this item's hover state."
+        }
+      },
+      "ambientCanvas": {
+        "name": "Ambient Canvas",
+        "description": "A full-viewport fragment shader — a halftone dot grid colorized by a domain-warped FBM noise field (churning, water-like blobs rather than straight bands), alpha-blended at low opacity for a retro-CRT/static look. Theme-independent by design: always the same rainbow palette, low opacity so it stays ambient instead of fighting page content. Pointer-reactive: the dot grid morphs — same cells, same pitch — into black ASCII glyphs (ring/cross/plus/square) only where the pointer actually moves, painted via a ping-pong feedback buffer with an organic, noise-jittered width. The stamp itself is snapped to the same dot grid with a hard edge (no anti-aliasing) — still a round silhouette, but stepped/blocky at the edges since it's built from grid cells rather than smooth math, matching the retro grid's pixel language. The trail's continuous decay is quantized into 3 discrete steps before driving color/shape, so a stroke fades out in 3 visible layers instead of one smooth continuous fade. A stationary pointer paints nothing new — the existing stroke just steps through its fade-out.",
+        "a11y": "Renders an aria-hidden div — purely decorative. Respects prefers-reduced-motion (renders exactly one static frame, no animation loop) and pauses via the Page Visibility API when the tab is hidden. Doesn't mount at all on low-power devices (navigator.hardwareConcurrency <= 2) or without WebGL — the static gradient backdrop shows through instead.",
+        "props": {
+          "className": "Overrides the wrapper div's classes — pass an `absolute inset-0` variant to embed it inside a bounded container instead of the full viewport."
+        }
+      }
+    }
   }
 }

@@ -40,6 +40,11 @@ delete it, or fold its content into a canonical file.
    question to the Design Gallery via a browse/detail modal flow. Extends
    `#5` (the `question` block's `kind` flag) and `#8` (`DesignEntry`,
    `DesignGalleryGrid`, `LivePreviewPanel`).
+10. **`npm-package.md`** — extracting the non-trivial reusable primitives
+    (`WindowCard`, `Dock`/`DockItem`, `AmbientCanvas`) into a standalone
+    `iza-ui` npm package in a separate repo. References `#1` (design tokens
+    ported into the package's own CSS) and `#4` (the component docs model
+    these components originated from).
 
 ## Not canonical — do not treat as a source of truth
 

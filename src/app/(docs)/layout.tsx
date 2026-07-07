@@ -1,4 +1,5 @@
 import { DocsSidebar } from "@/components/docs/DocsSidebar";
+import { RepoBadge } from "@/components/docs/RepoBadge";
 
 export default function DocsLayout({
   children,
@@ -11,6 +12,7 @@ export default function DocsLayout({
         <DocsSidebar />
       </aside>
       <main className="min-w-0 flex-1">{children}</main>
+      <RepoBadge />
     </div>
   );
 }

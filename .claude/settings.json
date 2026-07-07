@@ -23,10 +23,36 @@
       "Bash(rm -f d:/iza-web-design/scratch-visual*.mjs d:/iza-web-design/shot-*.png *)",
       "Bash(sed -i 's/colorScheme: \"dark\"/colorScheme: \"light\"/g' scratch-mobile.mjs)",
       "Bash(node scratch-mobile.mjs)",
-      "Bash(rm -f d:/iza-web-design/scratch-mobile.mjs d:/iza-web-design/shot-mobile-*.png *)"
+      "Bash(rm -f d:/iza-web-design/scratch-mobile.mjs d:/iza-web-design/shot-mobile-*.png *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://registry.npmjs.org/iza-ui)",
+      "Bash(curl -s https://api.github.com/repos/iza-aa/iza-ui)",
+      "Bash(node -e ' *)",
+      "Bash(ls -la /d/ 2>/dev/null | head -20)",
+      "Read(//d//**)",
+      "Bash(git clone *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(npm whoami *)",
+      "Bash(npm pack *)",
+      "Bash(npm publish *)",
+      "Bash(rm /d/iza-ui/.npmrc && ls -la /d/iza-ui/.npmrc 2>&1)",
+      "Bash(curl -s https://registry.npmjs.org/iza-ui)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\(j.name, Object.keys\\(j.versions||{}\\)\\);}\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('/d/iza-web-design/src/dictionaries/en.json','utf8'\\)\\); console.log\\('en ok'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('/d/iza-web-design/src/dictionaries/id.json','utf8'\\)\\); console.log\\('id ok'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/dictionaries/en.json','utf8'\\)\\); console.log\\('en ok'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/dictionaries/id.json','utf8'\\)\\); console.log\\('id ok'\\)\")",
+      "Bash(curl -s http://localhost:3000/_next/static/css/*.css)",
+      "Bash(curl -s http://localhost:3000/docs)",
+      "Bash(curl -s \"http://localhost:3000/_next/static/chunks/src_app_globals_162hn9o.css\")",
+      "Bash(grep -o '.\\\\{0,20\\\\}z-80.\\\\{0,60\\\\}')"
     ],
     "additionalDirectories": [
-      "d:\\iza-web-design"
+      "d:\\iza-web-design",
+      "d:\\iza-ui",
+      "D:\\iza-ui"
     ]
   }
 }

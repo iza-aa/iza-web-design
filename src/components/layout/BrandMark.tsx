@@ -22,7 +22,7 @@ export function BrandMark() {
   return (
     <Link
       href="/"
-      className="fixed left-4 top-4 z-40 flex items-center gap-2 rounded-full border border-transparent p-1 sm:left-6 sm:top-6"
+      className="fixed left-1/2 top-6 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-transparent p-1 lg:left-6 lg:translate-x-0"
       aria-label="IZA UI — home"
     >
       <Image
@@ -33,7 +33,7 @@ export function BrandMark() {
         className="h-3 w-auto sm:h-4"
         priority
       />
-      <span className="font-display text-sm font-bold text-on-surface sm:text-base">
+      <span className="hidden font-display text-sm font-bold text-on-surface sm:inline-block sm:text-base">
         web design
         <AnimatePresence mode="wait">
           <motion.span

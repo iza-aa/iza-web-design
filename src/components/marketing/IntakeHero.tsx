@@ -688,9 +688,17 @@ export function IntakeHero({
         {closed ? null : !started ? (
         <motion.div
           key="intro"
-          variants={scaleIn}
-          initial="hidden"
-          animate="show"
+          // Not `scaleIn` (opacity 0 -> 1): this card is glassmorphic
+          // (backdrop-blur-xl over the animated WebGL canvas) — fading its
+          // opacity up from 0 means the first frames are more transparent
+          // than the resting glass look, so the sharp canvas underneath
+          // shows through almost unblurred before "popping" into frosted
+          // glass once opacity settles near 1. Keeping opacity at a
+          // constant 1 and only animating scale/y avoids that see-through
+          // flash entirely — the entrance still reads as growing in.
+          initial={{ opacity: 1, scale: 0.96, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: durations.base, ease: easing.standard }}
           exit={{
             opacity: 0,
             scale: 0.05,
@@ -699,7 +707,7 @@ export function IntakeHero({
           }}
           className="mx-auto w-full max-w-3xl"
         >
-        <WindowCard onClose={close} closeLabel={t("aiIntake.closeAria")}>
+        <WindowCard onClose={close} closeLabel={t("aiIntake.closeAria")} blur={false}>
           <div className="p-8 text-center sm:p-10">
             <RotatingHeadline variants={tList("aiIntake.headlineVariants")} />
             <p className="mt-3 text-secondary">{t("aiIntake.subheading")}</p>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useInView } from "framer-motion";
 import type { DesignEntry } from "@/lib/design-gallery";
 import { useDesignEntries } from "@/lib/use-design-entries";
 import { LivePreviewPanel } from "@/components/gallery/LivePreviewPanel";
@@ -16,6 +16,78 @@ function sourceLabel(source: DesignEntry["source"], t: (path: string) => string)
   if (source === "iza") return t("gallery.filterIza");
   if (source === "color-reference") return t("gallery.filterColorReference");
   return t("gallery.filterSuperdesign");
+}
+
+// Same reasoning as DesignGalleryGrid's GalleryCard: <video> has no native
+// lazy-loading, so mounting all of them up front (this modal can list all 60+
+// entries at once) fires that many simultaneous metadata requests. Defer the
+// real <video>/<Image> until the card scrolls into the modal's viewport, and
+// — `once: false` — unmount it again once scrolled back out to free memory.
+function ReferenceCard({
+  entry,
+  index,
+  t,
+  onSelect,
+}: {
+  entry: DesignEntry;
+  index: number;
+  t: (path: string) => string;
+  onSelect: () => void;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const inView = useInView(ref, { once: false, margin: "200px" });
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onSelect}
+      className={`block min-w-0 overflow-hidden rounded-lg text-left transition-colors hover:border-primary ${glassCard}`}
+    >
+      {entry.source === "color-reference" && entry.colors ? (
+        <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
+          {entry.colors.map((hex, i) => (
+            <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
+          ))}
+        </div>
+      ) : (
+        <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
+          {!inView ? null : entry.thumbnailIsVideo ? (
+            <video
+              src={entry.thumbnailUrl}
+              muted
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover object-top"
+            />
+          ) : (
+            entry.thumbnailUrl && (
+              <Image
+                src={entry.thumbnailUrl}
+                alt={entry.title}
+                fill
+                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 300px"
+                priority={index < 3}
+                className="object-cover object-top"
+              />
+            )
+          )}
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-3 p-4">
+        <p className="min-w-0 truncate font-display text-sm font-semibold">{entry.title}</p>
+        {entry.source === "color-reference" && entry.accentColor ? (
+          <span
+            className="h-3 w-3 shrink-0 rounded-full"
+            style={{ backgroundColor: entry.accentColor }}
+            aria-hidden
+          />
+        ) : (
+          <p className="shrink-0 text-[10px] uppercase tracking-wide text-secondary">{sourceLabel(entry.source, t)}</p>
+        )}
+      </div>
+    </button>
+  );
 }
 
 /**
@@ -125,57 +197,7 @@ export function ReferencePickerModal({
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {visible.map((entry, index) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      onClick={() => setSelected(entry)}
-                      className={`block min-w-0 overflow-hidden rounded-lg text-left transition-colors hover:border-primary ${glassCard}`}
-                    >
-                      {entry.source === "color-reference" && entry.colors ? (
-                        <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
-                          {entry.colors.map((hex, i) => (
-                            <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
-                          {entry.thumbnailIsVideo ? (
-                            <video
-                              src={entry.thumbnailUrl}
-                              muted
-                              playsInline
-                              preload="metadata"
-                              className="h-full w-full object-cover object-top"
-                            />
-                          ) : (
-                            entry.thumbnailUrl && (
-                              <Image
-                                src={entry.thumbnailUrl}
-                                alt={entry.title}
-                                fill
-                                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 300px"
-                                priority={index < 3}
-                                className="object-cover object-top"
-                              />
-                            )
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between gap-3 p-4">
-                        <p className="min-w-0 truncate font-display text-sm font-semibold">{entry.title}</p>
-                        {entry.source === "color-reference" && entry.accentColor ? (
-                          <span
-                            className="h-3 w-3 shrink-0 rounded-full"
-                            style={{ backgroundColor: entry.accentColor }}
-                            aria-hidden
-                          />
-                        ) : (
-                          <p className="shrink-0 text-[10px] uppercase tracking-wide text-secondary">
-                            {sourceLabel(entry.source, t)}
-                          </p>
-                        )}
-                      </div>
-                    </button>
+                    <ReferenceCard key={entry.id} entry={entry} index={index} t={t} onSelect={() => setSelected(entry)} />
                   ))}
                 </div>
               </motion.div>

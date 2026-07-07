@@ -1,5 +1,5 @@
 import { OWNER_NAME } from "@/lib/intake-prompt";
-import { glassCard } from "@/lib/tokens";
+import { glassCardOpaque } from "@/lib/tokens";
 import { useIntakeVisibility } from "@/lib/intake-visibility";
 import { useLanguage } from "@/lib/language";
 
@@ -10,7 +10,7 @@ export function IntakeStepGuide({ current }: { current: number }) {
   const { t } = useLanguage();
   const steps = stepKeys.map((key) => t(key, { name: OWNER_NAME }));
   return (
-    <div className={`overflow-hidden rounded-2xl lg:w-64 lg:shrink-0 ${glassCard}`}>
+    <div className={`overflow-hidden rounded-2xl lg:w-64 lg:shrink-0 ${glassCardOpaque}`}>
       <div className="flex items-center border-b border-(--glass-border) px-4 py-3">
         <button
           type="button"

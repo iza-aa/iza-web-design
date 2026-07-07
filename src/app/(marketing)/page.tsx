@@ -6,7 +6,7 @@ import { IntakeHero } from "@/components/marketing/IntakeHero";
 import { IntakeStepGuide } from "@/components/marketing/IntakeStepGuide";
 import { DesignGalleryGrid } from "@/components/gallery/DesignGalleryGrid";
 import { fadeUp, group, stagger, reducedGroup, reducedFade } from "@/lib/motion";
-import { glassCard } from "@/lib/tokens";
+import { glassCardOpaque } from "@/lib/tokens";
 import { useIntakeVisibility } from "@/lib/intake-visibility";
 import { useLanguage } from "@/lib/language";
 
@@ -107,7 +107,7 @@ export default function HomePage() {
               {featureBlurbs.map((f, i) => (
                 <motion.div key={f.titleKey} variants={fade} className={`absolute max-w-55 ${f.position}`}>
                   <motion.div
-                    className={`will-change-transform rounded-lg p-4 ${glassCard}`}
+                    className={`will-change-transform rounded-lg p-4 ${glassCardOpaque}`}
                     animate={reduced ? undefined : { y: -8 }}
                     transition={
                       reduced

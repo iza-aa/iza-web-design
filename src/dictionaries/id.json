@@ -124,5 +124,126 @@
   "notFound": {
     "title": "Halaman tidak ditemukan",
     "body": "Halaman yang Anda cari tidak ada atau mungkin sudah dipindahkan."
+  },
+  "docs": {
+    "nav": {
+      "introduction": "Pengantar",
+      "installation": "Instalasi",
+      "theming": "Tema",
+      "components": "Komponen",
+      "menu": "Menu"
+    },
+    "groups": {
+      "layout": "Tata Letak",
+      "canvas": "Kanvas"
+    },
+    "codeBlock": {
+      "copy": "Salin",
+      "copied": "Tersalin!",
+      "viewCode": "Lihat Kode"
+    },
+    "componentPreview": {
+      "replay": "Ulangi"
+    },
+    "intro": {
+      "title": "Pengantar",
+      "bodyPrefix": "Setiap komponen di sini adalah kode yang persis sama dengan yang berjalan di halaman marketing situs ini — bukan salinan demo terpisah. Semuanya juga genuinely rumit untuk dibangun ulang dari nol, itulah alasan kenapa layak punya halaman sendiri di sini. Install package npm ",
+      "bodyMid": " untuk versi precompiled siap pakai, atau salin langsung dari tab ",
+      "bodySuffix": " di tiap halaman kalau mau kelola dan kustomisasi sendiri.",
+      "howItWorksTitle": "Cara kerja docs ini",
+      "howItWorksPrefix": "Tiap halaman komponen menampilkan live preview komponen aslinya, tab ",
+      "howItWorksMid": " berisi source code persis (tombol salin sudah ada), contoh instalasi, dan tabel props. Sengaja tidak ada playground prop interaktif — static preview yang bersih plus kode yang bisa disalin sudah cukup untuk kebanyakan kebutuhan.",
+      "startHereTitle": "Mulai dari sini",
+      "installationDesc": "package npm-nya, atau apa yang perlu disalin ke project kalau mau pakai source langsung.",
+      "themingDesc": "tabel lengkap token warna/radius/spacing."
+    },
+    "installation": {
+      "title": "Instalasi",
+      "subtitle": "Dua cara dapetin komponen ini, pilih yang cocok — package npm buat setup tercepat, atau salin source-nya kalau mau kelola dan kustomisasi sendiri.",
+      "option1Title": "Opsi 1: package npm",
+      "option1Body": "CSS udah precompiled dan ikut ke package-nya — gak perlu setup Tailwind, gak perlu setup token, sisa halaman ini gak berlaku.",
+      "installLabel": "Install",
+      "usageLabel": "Pemakaian",
+      "option2Title": "Opsi 2: salin source",
+      "option2Prefix": "Salin file komponen yang lo mau dari ",
+      "option2Mid": " (tab ",
+      "option2Mid2": " di tiap halaman komponen punya source persis) ke project lo sendiri, dan pastikan dua hal di bawah ini udah ada.",
+      "step1Title": "1. Tailwind CSS v4",
+      "step1Prefix": "Semua komponen di-style pakai Tailwind utility classes doang — gak ada CSS modules, gak ada styled-components. Lo butuh config CSS-first Tailwind v4 (",
+      "step1Suffix": " di stylesheet global lo).",
+      "step2Title": "2. Design tokens",
+      "step2Prefix": "Komponen refer ke token warna kayak ",
+      "step2Mid": " dan ",
+      "step2Mid2": ", bukan hex mentah. Tambahin ini ke ",
+      "step2Mid3": " block lo sendiri — liat tabel lengkapnya di halaman ",
+      "step2Mid4": " . Window Card dan Dock Item juga butuh variabel ",
+      "step2Mid5": " di bawah dan string ",
+      "step2Suffix": " dari ",
+      "step2End": "; Ambient Canvas gak butuh keduanya.",
+      "themeSnippetLabel": "globals.css"
+    },
+    "theming": {
+      "title": "Tema",
+      "prefix": "Di-render langsung dari ",
+      "suffix": " — tabel ini jadi satu-satunya sumber kebenaran yang dibaca kedua produk (marketing + docs), jadi warna di sini gak akan pernah beda sama yang beneran jalan.",
+      "colorsTitle": "Warna",
+      "colorsNote": "Dark jadi tema default; light override lewat class `.light`.",
+      "radiusTitle": "Radius",
+      "spacingTitle": "Spacing"
+    },
+    "componentsIndex": {
+      "title": "Komponen",
+      "bodyPrefix": "Cuma komponen yang beneran ada rekayasa teknis di baliknya yang masuk sini — gak ada yang bisa dibikin dev kompeten dalam hitungan menit. Ketiganya ada di package npm ",
+      "bodyMid": ", CSS precompiled udah termasuk, atau salin source langsung dari tab ",
+      "bodySuffix": " di tiap halaman kalau gak mau nambah dependency."
+    },
+    "componentDetail": {
+      "preview": "Preview",
+      "code": "Code",
+      "installation": "Instalasi",
+      "props": "Props",
+      "accessibility": "Aksesibilitas",
+      "usageLabel": "Pemakaian",
+      "propName": "Prop",
+      "propType": "Tipe",
+      "propDefault": "Default",
+      "propDescription": "Deskripsi"
+    },
+    "components": {
+      "windowCard": {
+        "name": "Window Card",
+        "description": "'Jendela OS' kaca buram — chrome bar (dengan satu titik merah close mac-style yang fungsional kalau onClose dikasih) di atas slot konten. Ini shell di balik AI intake card di homepage.",
+        "a11y": "Kontrol close itu <button> asli dengan aria-label — selalu kasih closeLabel dengan string terjemahan di konteks yang dilokalisasi.",
+        "props": {
+          "children": "Konten yang di-render di bawah chrome bar.",
+          "onClose": "Kalau dikasih, render titik merah close yang fungsional. Kosongkan buat render chrome bar tanpa kontrol close.",
+          "closeLabel": "aria-label buat tombol close.",
+          "className": "Class tambahan yang digabung ke window luar."
+        }
+      },
+      "dockItem": {
+        "name": "Dock Item",
+        "description": "Satu tile floating-dock — tooltip hover, indikator titik active-state, magnifikasi ala macOS yang digerakkan oleh boost. Render sebagai Link kalau href dikasih, atau button kalau enggak (dipake buat aksi reopen chat AI).",
+        "a11y": "Teks tooltip merangkap jadi aria-label karena tile-nya gak punya label teks yang keliatan sendiri.",
+        "props": {
+          "href": "Kalau dikasih, render sebagai Link dari next/link.",
+          "label": "Teks tooltip dan aria-label.",
+          "icon": "Konten ikon, ukurannya ngisi tile 48×48.",
+          "active": "Nampilin indikator titik kecil di bawahnya.",
+          "onClick": "Dipake gantiin href buat tile aksi (misal reopen).",
+          "boost": "Nilai magnifikasi 0–1, dihitung dock induk berdasarkan jarak hover — scale ikon sampai 1.4x, angkat ke atas, dan nambah margin samping biar gak nabrak tetangga.",
+          "onHoverStart": "Dilaporin ke dock induk biar bisa ngitung nilai boost buat semua item.",
+          "onHoverEnd": "Dilaporin ke dock induk buat clear hover state item ini."
+        }
+      },
+      "ambientCanvas": {
+        "name": "Ambient Canvas",
+        "description": "Fragment shader full-viewport — grid dot halftone yang diwarnai medan noise FBM domain-warped (blob mengalir kayak air, bukan pita lurus), alpha-blend di opacity rendah buat kesan retro-CRT/static. Theme-independent by design: selalu palet pelangi yang sama, opacity rendah biar tetap ambient bukan nyaingin konten halaman. Reaktif ke pointer: grid dot berubah bentuk — sel sama, jarak sama — jadi glyph ASCII hitam (ring/cross/plus/square) cuma di tempat pointer beneran gerak, dilukis lewat ping-pong feedback buffer dengan lebar yang di-jitter noise secara organik. Stamp-nya sendiri di-snap ke grid dot yang sama dengan tepi keras (tanpa anti-aliasing) — siluetnya tetap bundar, tapi bertingkat/blocky di tepinya karena dibangun dari sel grid bukan matematika halus, cocok sama bahasa pixel grid retro-nya. Peluruhan trail-nya di-quantize jadi 3 tahap diskrit sebelum nentuin warna/bentuk, jadi satu goresan memudar dalam 3 lapis keliatan bukan satu fade halus terus-menerus. Pointer diam gak melukis apa-apa yang baru — goresan yang udah ada cuma lanjut ke tahap fade-out-nya.",
+        "a11y": "Render div aria-hidden — murni dekoratif. Menghormati prefers-reduced-motion (render tepat satu frame statis, tanpa loop animasi) dan pause lewat Page Visibility API pas tab disembunyikan. Gak mount sama sekali di device low-power (navigator.hardwareConcurrency <= 2) atau tanpa WebGL — gradient statis di baliknya tampil sebagai gantinya.",
+        "props": {
+          "className": "Override class div wrapper — kasih varian `absolute inset-0` buat embed di container terbatas, bukan full viewport."
+        }
+      }
+    }
   }
 }

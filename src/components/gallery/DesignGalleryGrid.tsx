@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import type { DesignEntry } from "@/lib/design-gallery";
 import { useDesignEntries } from "@/lib/use-design-entries";
 import { glassCard, glassPill } from "@/lib/tokens";
@@ -16,6 +16,101 @@ function sourceLabel(source: DesignEntry["source"], t: (path: string) => string)
   if (source === "iza") return t("gallery.filterIza");
   if (source === "color-reference") return t("gallery.filterColorReference");
   return t("gallery.filterSuperdesign");
+}
+
+// Cards only actually appear once their own <video> mounts (browsers fetch a
+// video's metadata the instant it's in the DOM — unlike <img>/next/image,
+// there's no native lazy-loading for <video>). With dozens of cards in the
+// grid, mounting them all up front fired dozens of simultaneous requests.
+// `useInView` defers the real <video>/<Image> until the card is actually
+// within `margin` of the viewport, and — `once: false` — unmounts it again
+// once the card scrolls back out, freeing the decoded video/image instead of
+// holding every visited card's media in memory for the rest of the session.
+// Trade-off: scrolling back to an earlier card re-fetches its media instead
+// of reusing a cached mount; worth it since this grid can hold 60+ entries.
+function GalleryCard({
+  entry,
+  index,
+  fade,
+  t,
+}: {
+  entry: DesignEntry;
+  index: number;
+  fade: Variants;
+  t: (path: string) => string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: false, margin: "200px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      layout
+      variants={fade}
+      initial="hidden"
+      animate="show"
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="min-w-0"
+    >
+      <Link
+        href={`/${entry.slug}`}
+        className={`block overflow-hidden rounded-lg transition-colors hover:border-primary ${glassCard}`}
+      >
+        {entry.source === "color-reference" && entry.colors ? (
+          <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
+            {entry.colors.map((hex, i) => (
+              <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
+            ))}
+          </div>
+        ) : (
+          <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
+            {!inView ? null : entry.thumbnailIsVideo ? (
+              <video
+                src={entry.thumbnailUrl}
+                muted
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover object-top"
+              />
+            ) : entry.thumbnailUrl ? (
+              <Image
+                src={entry.thumbnailUrl}
+                alt={entry.title}
+                fill
+                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                priority={index < 3}
+                className="object-cover object-top"
+              />
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs text-secondary">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="shrink-0">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                {t("gallery.videoPreview")}
+              </span>
+            )}
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-3 p-5">
+          <p className="min-w-0 truncate font-display text-lg font-semibold">{entry.title}</p>
+          {entry.source === "color-reference" && entry.accentColor ? (
+            <span className="flex shrink-0 items-center gap-2">
+              <span className="text-xs uppercase tracking-wide text-secondary">designmd.co</span>
+              <span
+                className="h-3.5 w-3.5 shrink-0 rounded-full"
+                style={{ backgroundColor: entry.accentColor }}
+                aria-hidden
+              />
+            </span>
+          ) : (
+            <p className="shrink-0 text-xs uppercase tracking-wide text-secondary">{sourceLabel(entry.source, t)}</p>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  );
 }
 
 export function DesignGalleryGrid() {
@@ -74,73 +169,7 @@ export function DesignGalleryGrid() {
       <motion.div variants={gridGroup} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {visible.map((entry, index) => (
-            <motion.div
-              key={entry.id}
-              layout
-              variants={fade}
-              initial="hidden"
-              animate="show"
-              exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
-              whileHover={{ y: -3 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="min-w-0"
-            >
-              <Link
-                href={`/${entry.slug}`}
-                className={`block overflow-hidden rounded-lg transition-colors hover:border-primary ${glassCard}`}
-              >
-                {entry.source === "color-reference" && entry.colors ? (
-                  <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
-                    {entry.colors.map((hex, i) => (
-                      <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
-                    {entry.thumbnailIsVideo ? (
-                      <video
-                        src={entry.thumbnailUrl}
-                        muted
-                        playsInline
-                        preload="metadata"
-                        className="h-full w-full object-cover object-top"
-                      />
-                    ) : entry.thumbnailUrl ? (
-                      <Image
-                        src={entry.thumbnailUrl}
-                        alt={entry.title}
-                        fill
-                        sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
-                        priority={index < 3}
-                        className="object-cover object-top"
-                      />
-                    ) : (
-                      <span className="flex items-center gap-1.5 text-xs text-secondary">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="shrink-0">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                        {t("gallery.videoPreview")}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-3 p-5">
-                  <p className="min-w-0 truncate font-display text-lg font-semibold">{entry.title}</p>
-                  {entry.source === "color-reference" && entry.accentColor ? (
-                    <span className="flex shrink-0 items-center gap-2">
-                      <span className="text-xs uppercase tracking-wide text-secondary">designmd.co</span>
-                      <span
-                        className="h-3.5 w-3.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: entry.accentColor }}
-                        aria-hidden
-                      />
-                    </span>
-                  ) : (
-                    <p className="shrink-0 text-xs uppercase tracking-wide text-secondary">{sourceLabel(entry.source, t)}</p>
-                  )}
-                </div>
-              </Link>
-            </motion.div>
+            <GalleryCard key={entry.id} entry={entry} index={index} fade={fade} t={t} />
           ))}
         </AnimatePresence>
       </motion.div>

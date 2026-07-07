@@ -78,8 +78,8 @@
   --color-error: #DC2626;
   --color-border-subtle: #E5E7EB;
 
-  --glass-bg: rgba(17, 24, 39, 0.05);
-  --glass-border: rgba(17, 24, 39, 0.1);
+  --glass-bg: rgba(17, 24, 39, 0.16);
+  --glass-border: rgba(17, 24, 39, 0.16);
   --glass-strong-bg: rgba(249, 250, 251, 0.75);
   --glass-input-bg: #F3F4F6;
 }
