@@ -14,12 +14,12 @@ import { AUTO_FALLBACK_ORDER, isModelId, type ModelChoice, type ModelId } from "
 
 export const maxDuration = 30;
 // Google's Generative Language API (the AI Studio key this route uses, not
-// Vertex AI) only allows requests from a limited set of countries. Vercel's
-// default region can land close to the visitor — e.g. an APAC region for a
-// visitor in Indonesia — whose egress IP Google rejects with "User location
-// is not supported for the API use" regardless of which API key/model is
-// tried. Pinning this function to US East forces a supported egress IP.
-export const preferredRegion = ["iad1"];
+// Vertex AI) only allows requests from a limited set of countries — notably
+// excluding Hong Kong/China, but Singapore is on the supported list and sits
+// far closer to Indonesian visitors than US East. Pin here (and set the
+// matching Function Region in Vercel's dashboard — that's what actually
+// governs a Node.js serverless function's region, not this export alone).
+export const preferredRegion = ["sin1"];
 
 function isQuotaError(err: unknown): boolean {
   if (RetryError.isInstance(err)) {

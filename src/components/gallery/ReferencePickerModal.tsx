@@ -139,15 +139,25 @@ export function ReferencePickerModal({
                         </div>
                       ) : (
                         <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
-                          {entry.thumbnailUrl && (
-                            <Image
+                          {entry.thumbnailIsVideo ? (
+                            <video
                               src={entry.thumbnailUrl}
-                              alt={entry.title}
-                              fill
-                              sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 300px"
-                              priority={index < 3}
-                              className="object-cover object-top"
+                              muted
+                              playsInline
+                              preload="metadata"
+                              className="h-full w-full object-cover object-top"
                             />
+                          ) : (
+                            entry.thumbnailUrl && (
+                              <Image
+                                src={entry.thumbnailUrl}
+                                alt={entry.title}
+                                fill
+                                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 300px"
+                                priority={index < 3}
+                                className="object-cover object-top"
+                              />
+                            )
                           )}
                         </div>
                       )}

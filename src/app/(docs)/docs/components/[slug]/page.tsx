@@ -30,7 +30,7 @@ export default async function ComponentDocPage({
 
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary">Preview</p>
-        <div className="flex min-h-40 items-center justify-center rounded-lg border border-border-subtle p-10">
+        <div className="flex min-h-40 items-center justify-center rounded-lg border border-border-subtle p-6 sm:p-10">
           <ComponentPreview slug={doc.slug} />
         </div>
       </div>

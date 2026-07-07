@@ -96,8 +96,16 @@ export function DesignGalleryGrid() {
                     ))}
                   </div>
                 ) : (
-                  <div className="relative aspect-video w-full overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
-                    {entry.thumbnailUrl && (
+                  <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden border-b border-(--glass-border) bg-(--glass-input-bg)">
+                    {entry.thumbnailIsVideo ? (
+                      <video
+                        src={entry.thumbnailUrl}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="h-full w-full object-cover object-top"
+                      />
+                    ) : entry.thumbnailUrl ? (
                       <Image
                         src={entry.thumbnailUrl}
                         alt={entry.title}
@@ -106,6 +114,13 @@ export function DesignGalleryGrid() {
                         priority={index < 3}
                         className="object-cover object-top"
                       />
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-xs text-secondary">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="shrink-0">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        {t("gallery.videoPreview")}
+                      </span>
                     )}
                   </div>
                 )}

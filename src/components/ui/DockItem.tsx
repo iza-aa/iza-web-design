@@ -14,6 +14,15 @@ import type { ReactNode } from "react";
  * so this component itself has no hover-state opinion beyond reporting
  * hover start/end back up.
  */
+// Half the icon's own scale-driven overflow (h-12 = 48px box, scale goes up
+// to 1 + boost * 0.4) — given to each item as its own margin so it pushes
+// its neighbors away by exactly as much as it's about to bleed past its box.
+// Real layout margin instead of the parent's `gap`: Framer Motion doesn't
+// reliably animate a shared `gap` value, so a flat container-level number
+// silently no-ops instead of creating room, and the magnified icon just
+// overlaps whatever's next to it.
+const MARGIN_PER_BOOST = 9.6;
+
 export function DockItem({
   href,
   label,
@@ -33,6 +42,8 @@ export function DockItem({
   onHoverStart?: () => void;
   onHoverEnd?: () => void;
 }) {
+  const margin = boost * MARGIN_PER_BOOST;
+  const wrapperStyle = { marginLeft: margin, marginRight: margin };
   const content = (
     <>
       <motion.div
@@ -60,14 +71,26 @@ export function DockItem({
 
   if (href) {
     return (
-      <Link href={href} aria-label={label} aria-current={active ? "page" : undefined} className="group relative">
+      <Link
+        href={href}
+        aria-label={label}
+        aria-current={active ? "page" : undefined}
+        className="group relative transition-[margin] duration-200 ease-out"
+        style={wrapperStyle}
+      >
         {content}
       </Link>
     );
   }
 
   return (
-    <button type="button" onClick={onClick} aria-label={label} className="group relative">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="group relative transition-[margin] duration-200 ease-out"
+      style={wrapperStyle}
+    >
       {content}
     </button>
   );

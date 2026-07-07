@@ -3,7 +3,7 @@ export type PropRow = { name: string; type: string; default?: string; descriptio
 export type ComponentDoc = {
   slug: string;
   name: string;
-  group: "Primitives" | "Form" | "Layout" | "Motion" | "Canvas";
+  group: "Layout" | "Canvas";
   description: string;
   sourcePath: string; // relative to project root, read at request time for the Code tab
   install: string;
@@ -12,53 +12,6 @@ export type ComponentDoc = {
 };
 
 export const componentDocs: ComponentDoc[] = [
-  {
-    slug: "button",
-    name: "Button",
-    group: "Primitives",
-    description:
-      "Three variants — primary (the one saturated color on screen), secondary (outlined), tertiary (text-only). Only primary gets hover/tap micro-motion.",
-    sourcePath: "src/components/ui/Button.tsx",
-    install: `import { Button } from "@/components/ui/Button";
-
-<Button variant="primary">Start a Project</Button>`,
-    props: [
-      { name: "variant", type: '"primary" | "secondary" | "tertiary"', default: '"primary"', description: "Visual style. Never use more than one primary button on the same screen." },
-      { name: "className", type: "string", default: '""', description: "Extra classes merged onto the button." },
-      { name: "...props", type: "HTMLMotionProps<'button'>", description: "Any native button prop (onClick, disabled, type, etc.) plus framer-motion props." },
-    ],
-    a11y: "Renders a native <button>; disabled state uses the native disabled attribute (not just a visual style), so it's excluded from the tab order automatically.",
-  },
-  {
-    slug: "input",
-    name: "Input",
-    group: "Form",
-    description: "Single-line text field. Border transitions to primary on focus.",
-    sourcePath: "src/components/ui/Input.tsx",
-    install: `import { Input } from "@/components/ui/Input";
-
-<Input placeholder="Enter your email address…" />`,
-    props: [
-      { name: "className", type: "string", default: '""', description: "Extra classes merged onto the input." },
-      { name: "...props", type: "InputHTMLAttributes<HTMLInputElement>", description: "Any native input prop (value, onChange, type, etc.)." },
-    ],
-    a11y: "Pair with a visible <label> (via htmlFor/id) in real usage — this component intentionally doesn't render one, since label copy and placement are context-specific.",
-  },
-  {
-    slug: "textarea",
-    name: "Textarea",
-    group: "Form",
-    description: "Multi-line text field. Shares Input's visual language — same fill, border, and radius, with a taller minimum height and a vertical resize handle.",
-    sourcePath: "src/components/ui/Textarea.tsx",
-    install: `import { Textarea } from "@/components/ui/Textarea";
-
-<Textarea placeholder="Describe what you're trying to build…" />`,
-    props: [
-      { name: "className", type: "string", default: '""', description: "Extra classes merged onto the textarea." },
-      { name: "...props", type: "TextareaHTMLAttributes<HTMLTextAreaElement>", description: "Any native textarea prop (value, onChange, rows, etc.)." },
-    ],
-    a11y: "Same labeling note as Input — pair with a visible label in real usage.",
-  },
   {
     slug: "window-card",
     name: "Window Card",
@@ -80,22 +33,10 @@ export const componentDocs: ComponentDoc[] = [
     a11y: "The close control is a real <button> with an aria-label — always pass closeLabel with a translated string in localized contexts.",
   },
   {
-    slug: "logo-mark",
-    name: "Logo Mark",
-    group: "Primitives",
-    description: "The squircle app-icon — near-black background, rounded-xl, one of only two elements allowed the emphasized (overshoot) easing on entrance.",
-    sourcePath: "src/components/ui/LogoMark.tsx",
-    install: `import { LogoMark } from "@/components/ui/LogoMark";
-
-<LogoMark size={64} />`,
-    props: [{ name: "size", type: "number", default: "72", description: "Width/height in pixels; font size scales with it." }],
-    a11y: "Purely decorative brand mark — no alt text needed since it's not conveying information beyond the wordmark shown alongside it.",
-  },
-  {
     slug: "dock-item",
     name: "Dock Item",
     group: "Layout",
-    description: "A single floating-dock tile — hover tooltip, active-state dot indicator. Renders as a Link when href is passed, or a button otherwise (used for the AI-chat reopen action).",
+    description: "A single floating-dock tile — hover tooltip, active-state dot indicator, macOS-style magnification driven by `boost`. Renders as a Link when href is passed, or a button otherwise (used for the AI-chat reopen action).",
     sourcePath: "src/components/ui/DockItem.tsx",
     install: `import { DockItem } from "@/components/ui/DockItem";
 
@@ -106,61 +47,11 @@ export const componentDocs: ComponentDoc[] = [
       { name: "icon", type: "ReactNode", description: "Icon content, sized to fill the 48×48 tile." },
       { name: "active", type: "boolean", description: "Shows the small dot indicator underneath." },
       { name: "onClick", type: "() => void", description: "Used instead of href for action tiles (e.g. reopen)." },
+      { name: "boost", type: "number", default: "0", description: "0–1 magnification amount, computed by the parent dock based on hover distance — scales the icon up to 1.4x, lifts it, and adds matching side margin so it doesn't collide with neighbors." },
+      { name: "onHoverStart", type: "() => void", description: "Reported up to the parent dock so it can compute boost values for all items." },
+      { name: "onHoverEnd", type: "() => void", description: "Reported up to the parent dock to clear this item's hover state." },
     ],
     a11y: "Tooltip text doubles as the aria-label since the tile has no visible text label of its own.",
-  },
-  {
-    slug: "fade-up",
-    name: "FadeUp",
-    group: "Motion",
-    description:
-      "Opacity + 16px rise on entrance, `easing.standard`. The default entrance for most blocks — headline text, blurbs, cards. Auto-swaps to an opacity-only variant under prefers-reduced-motion.",
-    sourcePath: "src/components/motion/FadeUp.tsx",
-    install: `import { motion } from "framer-motion";
-import { FadeUp } from "@/components/motion/FadeUp";
-import { group } from "@/lib/motion";
-
-<motion.div variants={group()} initial="hidden" animate="show">
-  <FadeUp>Content</FadeUp>
-</motion.div>`,
-    props: [
-      { name: "...props", type: "HTMLMotionProps<'div'>", description: "Any framer-motion div prop — initial/animate/whileInView when used standalone, or nothing when nested under a parent driving variant propagation (see group() in src/lib/motion.ts)." },
-    ],
-    a11y: "Reads prefers-reduced-motion via useReducedMotion() internally and falls back to a fast opacity-only fade — no transform, no stagger — so callers never re-implement that branch.",
-  },
-  {
-    slug: "pop-in",
-    name: "PopIn",
-    group: "Motion",
-    description:
-      "Opacity + scale 0.85→1 on entrance, `easing.emphasized` (overshoot). Reserved for the small set of elements the motion system allows overshoot on — the primary button and logo mark — not a general-purpose entrance.",
-    sourcePath: "src/components/motion/PopIn.tsx",
-    install: `import { PopIn } from "@/components/motion/PopIn";
-
-<PopIn initial="hidden" animate="show">
-  <LogoMark size={64} />
-</PopIn>`,
-    props: [
-      { name: "...props", type: "HTMLMotionProps<'div'>", description: "Any framer-motion div prop." },
-    ],
-    a11y: "Same reduced-motion fallback as FadeUp — opacity-only, no overshoot, when the user has requested less motion.",
-  },
-  {
-    slug: "scale-in",
-    name: "ScaleIn",
-    group: "Motion",
-    description:
-      "Opacity + scale 0.96→1 on entrance, `easing.standard`. The subtle, non-overshoot alternative to PopIn — for cards and panels entering the layout.",
-    sourcePath: "src/components/motion/ScaleIn.tsx",
-    install: `import { ScaleIn } from "@/components/motion/ScaleIn";
-
-<ScaleIn initial="hidden" animate="show">
-  <WindowCard>...</WindowCard>
-</ScaleIn>`,
-    props: [
-      { name: "...props", type: "HTMLMotionProps<'div'>", description: "Any framer-motion div prop." },
-    ],
-    a11y: "Same reduced-motion fallback as FadeUp.",
   },
   {
     slug: "ambient-canvas",
@@ -189,4 +80,4 @@ export function getComponentDoc(slug: string) {
   return componentDocs.find((c) => c.slug === slug);
 }
 
-export const componentDocGroups = ["Primitives", "Form", "Layout", "Motion", "Canvas"] as const;
+export const componentDocGroups = ["Layout", "Canvas"] as const;

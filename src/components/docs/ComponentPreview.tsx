@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Image from "next/image";
+import logoIza from "@/assets/logo/logoiza.png";
+import logoComponent from "@/assets/logo/logocomponent.png";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -11,6 +14,51 @@ import { FadeUp } from "@/components/motion/FadeUp";
 import { PopIn } from "@/components/motion/PopIn";
 import { ScaleIn } from "@/components/motion/ScaleIn";
 import { AmbientCanvas } from "@/components/canvas/AmbientCanvas";
+import { glassCard } from "@/lib/tokens";
+
+const DOCK_BOOST_FALLOFF = 0.55;
+
+function DockItemPreview() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const entries = [
+    {
+      key: "work",
+      label: "Work",
+      active: true,
+      icon: (
+        <div className="relative h-full w-full overflow-hidden rounded-sm">
+          <Image src={logoIza} alt="" fill sizes="48px" className="object-cover" />
+        </div>
+      ),
+    },
+    {
+      key: "components",
+      label: "Components",
+      active: false,
+      icon: (
+        <div className="relative h-full w-full overflow-hidden rounded-sm">
+          <Image src={logoComponent} alt="" fill sizes="48px" className="object-cover" />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className={`flex items-end gap-3 rounded-md px-2 pt-2 pb-2 ${glassCard}`}>
+      {entries.map((entry, i) => (
+        <DockItem
+          key={entry.key}
+          label={entry.label}
+          active={entry.active}
+          icon={entry.icon}
+          boost={hoveredIndex === null ? 0 : Math.max(0, 1 - Math.abs(i - hoveredIndex) * DOCK_BOOST_FALLOFF)}
+          onHoverStart={() => setHoveredIndex(i)}
+          onHoverEnd={() => setHoveredIndex((h) => (h === i ? null : h))}
+        />
+      ))}
+    </div>
+  );
+}
 
 function ReplayableMotionPreview({ children }: { children: (key: number) => ReactNode }) {
   const [key, setKey] = useState(0);
@@ -64,27 +112,7 @@ export function ComponentPreview({ slug }: { slug: string }) {
     case "logo-mark":
       return <LogoMark size={64} />;
     case "dock-item":
-      return (
-        <div className="flex items-center gap-3 rounded-full border border-border-subtle p-2">
-          <DockItem
-            label="Work"
-            active
-            icon={
-              <div className="flex h-full w-full items-center justify-center rounded-xl bg-[#0A0A0B] font-display text-sm font-bold text-primary-contrast">
-                I
-              </div>
-            }
-          />
-          <DockItem
-            label="Components"
-            icon={
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-xs font-bold text-[#0A0A0B]">
-                {"</>"}
-              </div>
-            }
-          />
-        </div>
-      );
+      return <DockItemPreview />;
     case "fade-up":
       return (
         <ReplayableMotionPreview>

@@ -22,7 +22,7 @@ export function BrandMark() {
   return (
     <Link
       href="/"
-      className="fixed left-4 top-4 z-40 flex items-center gap-2 sm:left-6 sm:top-6"
+      className="fixed left-4 top-4 z-40 flex items-center gap-2 rounded-full border border-transparent p-1 sm:left-6 sm:top-6"
       aria-label="IZA UI — home"
     >
       <Image

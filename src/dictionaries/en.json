@@ -116,6 +116,7 @@
     "viewSource": "View on Superdesign.dev",
     "loading": "Loading design entries…",
     "loadError": "Couldn't load the gallery right now — try again shortly.",
+    "videoPreview": "Video preview",
     "browseGalleryAction": "Browse design gallery",
     "selectAsReference": "Select this as reference",
     "backToBrowse": "Back to gallery"

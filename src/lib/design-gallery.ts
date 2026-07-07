@@ -13,6 +13,7 @@ export type DesignEntry = {
   description: string;
   tags: string[];
   thumbnailUrl: string;
+  thumbnailIsVideo?: boolean;
   prompt: string;
   previewHtml?: string;
   previewUrl?: string;
@@ -55,9 +56,11 @@ function mapSuperdesignItem(item: SuperdesignApiItem): DesignEntry {
     slug: item.slug,
     description: item.description,
     tags: item.tags ?? [],
-    // Some entries' thumbnails are .mp4 clips (animation-tagged items) — next/image
-    // can't optimize video, so only expose it as a thumbnail when it's actually an image.
-    thumbnailUrl: item.thumbnail?.type === "image" ? (item.thumbnail?.url ?? "") : "",
+    // Some entries' thumbnails are .mp4 clips (animation-tagged items) — no
+    // static screenshot exists for those, so we render the clip's first
+    // frame via a paused <video> instead of next/image (see thumbnailIsVideo).
+    thumbnailUrl: item.thumbnail?.url ?? "",
+    thumbnailIsVideo: item.thumbnail?.type === "video",
     prompt: item.prompt,
     previewUrl: item.previewUrl,
     creator: item.creator?.name

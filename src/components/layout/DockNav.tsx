@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { glassCard } from "@/lib/tokens";
 import { useIntakeVisibility } from "@/lib/intake-visibility";
@@ -38,19 +37,13 @@ const items = [
 ];
 
 // macOS-dock-style magnification: how much a neighbor's boost falls off per
-// index step away from the hovered item, and the padding-top range that
-// makes room for the tallest currently-boosted icon (base 8px, up to +22px
-// at boost 1 — matches DockItem's own scale/lift curve so the enlarged icon
-// never visually pokes past the pill's top edge).
+// index step away from the hovered item. DockItem scales icons up to 1.4x
+// (48px box, +0.4 * boost) and lifts the hovered one up by 14px * boost — the
+// pill itself stays a fixed size, so the magnified icon visually pokes past
+// its top/side edges rather than growing the card to contain it. Item-to-item
+// spacing is handled per-item in DockItem (margin driven by each item's own
+// boost), not a shared container `gap`.
 const BOOST_FALLOFF = 0.55;
-const BASE_PADDING_TOP = 8;
-const MAX_EXTRA_PADDING_TOP = 22;
-// gap-3 (12px) is fine at rest, but a boosted icon scales up to 1.4x (48px ->
-// ~67px) — at 12px gap the enlarged icon's edge crowds right into its
-// (also slightly boosted) neighbor. Widening the gap alongside the growth
-// gives the magnified icon room without touching neighbors.
-const BASE_GAP = 12;
-const MAX_EXTRA_GAP = 10;
 
 export function DockNav() {
   const pathname = usePathname();
@@ -87,22 +80,10 @@ export function DockNav() {
     })),
   ];
 
-  const maxBoost = hoveredIndex === null ? 0 : 1;
-
   return (
-    <motion.nav
+    <nav
       aria-label="Primary"
-      // `gap`'s CSS default is the keyword "normal", not a number — Framer
-      // Motion can't animate *from* that, hence `initial` seeding a real
-      // starting value here (paddingTop defaults to 0, already animatable,
-      // but set here too for symmetry).
-      initial={{ paddingTop: BASE_PADDING_TOP, gap: BASE_GAP }}
-      animate={{
-        paddingTop: BASE_PADDING_TOP + MAX_EXTRA_PADDING_TOP * maxBoost,
-        gap: BASE_GAP + MAX_EXTRA_GAP * maxBoost,
-      }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-end rounded-md px-2 pb-2 ${glassCard}`}
+      className={`fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-end gap-3 rounded-md px-2 pt-2 pb-2 ${glassCard}`}
     >
       {entries.map((entry, i) => (
         <DockItem
@@ -117,6 +98,6 @@ export function DockNav() {
           onHoverEnd={() => setHoveredIndex((h) => (h === i ? null : h))}
         />
       ))}
-    </motion.nav>
+    </nav>
   );
 }
