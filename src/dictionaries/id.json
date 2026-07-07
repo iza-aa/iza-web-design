@@ -10,10 +10,18 @@
   "nav": {
     "work": "Karya",
     "components": "Komponen",
-    "reopenChat": "Chat AI"
+    "reopenChat": "Chat AI",
+    "contact": "Kontak"
   },
   "dock": {
-    "reopenAria": "Buka lagi chat AI"
+    "reopenAria": "Buka lagi chat AI",
+    "contactAria": "Buka info kontak"
+  },
+  "contact": {
+    "title": "Hubungi saya",
+    "locationLabel": "Lokasi",
+    "locationValue": "Lihat di Google Maps",
+    "closeAria": "Tutup info kontak"
   },
   "aiIntake": {
     "headlineVariants": ["Ceritakan proyek anda", "Apa yg ingin anda bangun?", "Mari kita rancang bersama"],

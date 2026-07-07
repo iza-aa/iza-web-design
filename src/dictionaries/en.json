@@ -10,10 +10,18 @@
   "nav": {
     "work": "Work",
     "components": "Components",
-    "reopenChat": "AI Chat"
+    "reopenChat": "AI Chat",
+    "contact": "Contact"
   },
   "dock": {
-    "reopenAria": "Reopen AI chat"
+    "reopenAria": "Reopen AI chat",
+    "contactAria": "Open contact info"
+  },
+  "contact": {
+    "title": "Get in touch",
+    "locationLabel": "Location",
+    "locationValue": "View on Google Maps",
+    "closeAria": "Close contact info"
   },
   "aiIntake": {
     "headlineVariants": ["Tell me about your project", "What are you building?", "Let's scope it together"],
