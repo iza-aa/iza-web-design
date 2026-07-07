@@ -58,6 +58,11 @@ async function attempt(
       streamErr = err;
       return err instanceof Error ? err.message : "An error occurred.";
     },
+    // Rides along on the "start" chunk (buffered/replayed below regardless of
+    // win/loss) so the client learns which candidate actually answered —
+    // lets it pin that model first on the next turn instead of re-racing
+    // AUTO_FALLBACK_ORDER from the top every single message.
+    messageMetadata: () => ({ model: candidate }),
   });
 
   const reader = uiStream.getReader();
@@ -86,15 +91,27 @@ export async function POST(req: Request) {
   }
 
   const clients = apiKeys.map((apiKey) => createGoogleGenerativeAI({ apiKey }));
-  const { messages, model: requestedModel }: { messages: UIMessage[]; model?: ModelChoice } = await req.json();
+  const {
+    messages,
+    model: requestedModel,
+    preferredModel,
+  }: { messages: UIMessage[]; model?: ModelChoice; preferredModel?: ModelId } = await req.json();
 
   const modelMessages = await convertToModelMessages(messages);
   const system = INTAKE_SYSTEM_PROMPT;
 
   // Explicit model choice: locked to that model, but still races accounts —
   // the client picked the model deliberately, not the account behind it.
+  // "Auto" + a `preferredModel` (the model that won last turn, per the
+  // `messageMetadata` on the "start" chunk below): try that one first, but
+  // keep the rest of the chain as fallback rather than locking to it — if
+  // the previous winner is out of quota now, fall through same as ever.
   const candidateModels: ModelId[] =
-    requestedModel && requestedModel !== "auto" && isModelId(requestedModel) ? [requestedModel] : [...AUTO_FALLBACK_ORDER];
+    requestedModel && requestedModel !== "auto" && isModelId(requestedModel)
+      ? [requestedModel]
+      : preferredModel && isModelId(preferredModel)
+        ? [preferredModel, ...AUTO_FALLBACK_ORDER.filter((m) => m !== preferredModel)]
+        : [...AUTO_FALLBACK_ORDER];
 
   // Race accounts (independent quotas) in parallel, but walk models one
   // tier at a time — firing every (account, model) combo at once would put

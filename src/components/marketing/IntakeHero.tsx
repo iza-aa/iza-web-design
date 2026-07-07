@@ -20,7 +20,7 @@ import { OWNER_NAME } from "@/lib/intake-prompt";
 import { glassCardStrong } from "@/lib/tokens";
 import { useIntakeVisibility } from "@/lib/intake-visibility";
 import { useLanguage } from "@/lib/language";
-import { AI_MODELS, modelLabel, type ModelChoice } from "@/lib/ai-models";
+import { AI_MODELS, isModelId, modelLabel, type ModelChoice, type ModelId } from "@/lib/ai-models";
 import { isAbusiveMessage } from "@/lib/abuse-filter";
 import geminiIcon from "@/assets/logo/google-gemini.svg";
 import emailIcon from "@/assets/logo/email.png";
@@ -441,6 +441,11 @@ export function IntakeHero({
 }) {
   const [input, setInput] = useState("");
   const [model, setModel] = useState<ModelChoice>("auto");
+  // The model that actually answered last turn (from the "start" chunk's
+  // messageMetadata — see /api/intake). Only consulted server-side when
+  // `model` is still "auto": tried first, but the rest of the fallback chain
+  // still applies if it's out of quota this time — see route.ts.
+  const [preferredModel, setPreferredModel] = useState<ModelId | null>(null);
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [ban, setBan] = useState<BanState | null>(null);
@@ -459,7 +464,7 @@ export function IntakeHero({
   const { close, closed, sessionCloseTick, setAutoVisible } = useIntakeVisibility();
   const { t, tList, setLocale } = useLanguage();
   const { messages, setMessages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/intake", body: { model } }),
+    transport: new DefaultChatTransport({ api: "/api/intake", body: { model, preferredModel } }),
   });
 
   const busy = status === "submitted" || status === "streaming";
@@ -493,6 +498,12 @@ export function IntakeHero({
       : messages.length > 2
         ? 1
         : 0;
+
+  useEffect(() => {
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    const winnerModel = (lastAssistant?.metadata as { model?: string } | undefined)?.model;
+    if (winnerModel && isModelId(winnerModel) && winnerModel !== preferredModel) setPreferredModel(winnerModel);
+  }, [messages, preferredModel]);
 
   useEffect(() => {
     onStartedChange?.(started);
@@ -580,6 +591,7 @@ export function IntakeHero({
     setMessages([]);
     setEmailStatus("idle");
     setInput("");
+    setPreferredModel(null);
     sentRef.current = false;
   }, [sessionCloseTick, setMessages]);
 
