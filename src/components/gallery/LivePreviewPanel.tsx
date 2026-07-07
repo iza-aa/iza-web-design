@@ -1,5 +1,5 @@
 import type { DesignEntry } from "@/lib/design-gallery";
-import { glassCard } from "@/lib/tokens";
+import { glassCardOpaque } from "@/lib/tokens";
 
 /**
  * Iza entries: same-origin `srcDoc` iframe, fully live/scrollable — we own
@@ -11,7 +11,7 @@ import { glassCard } from "@/lib/tokens";
 export function LivePreviewPanel({ entry, staticPreviewLabel }: { entry: DesignEntry; staticPreviewLabel: string }) {
   if (entry.previewHtml) {
     return (
-      <div className={`overflow-hidden rounded-lg p-2 ${glassCard}`}>
+      <div className={`overflow-hidden rounded-lg p-2 ${glassCardOpaque}`}>
         <div className="h-130 overflow-hidden rounded-md">
           <iframe srcDoc={entry.previewHtml} title={entry.title} className="h-full w-full" style={{ border: 0 }} />
         </div>
@@ -21,7 +21,7 @@ export function LivePreviewPanel({ entry, staticPreviewLabel }: { entry: DesignE
 
   if (entry.thumbnailUrl) {
     return (
-      <div className={`overflow-hidden rounded-lg ${glassCard}`}>
+      <div className={`overflow-hidden rounded-lg ${glassCardOpaque}`}>
         <p className="border-b border-(--glass-border) px-3 py-1.5 text-xs text-secondary">{staticPreviewLabel}</p>
         {entry.thumbnailIsVideo ? (
           <video src={entry.thumbnailUrl} muted playsInline preload="metadata" className="h-auto w-full" />

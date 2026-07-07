@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useInView } from "framer-motion";
 import type { DesignEntry } from "@/lib/design-gallery";
 import { useDesignEntries } from "@/lib/use-design-entries";
 import { LivePreviewPanel } from "@/components/gallery/LivePreviewPanel";
-import { glassCard, glassPill } from "@/lib/tokens";
+import { glassCardOpaque, glassPillOpaque } from "@/lib/tokens";
 import { easing } from "@/lib/motion";
 import { useLanguage } from "@/lib/language";
 
@@ -42,7 +42,7 @@ function ReferenceCard({
       ref={ref}
       type="button"
       onClick={onSelect}
-      className={`block min-w-0 overflow-hidden rounded-lg text-left transition-colors hover:border-primary ${glassCard}`}
+      className={`block min-w-0 overflow-hidden rounded-lg text-left transition-colors hover:border-primary ${glassCardOpaque}`}
     >
       {entry.source === "color-reference" && entry.colors ? (
         <div className="relative flex aspect-video w-full overflow-hidden border-b border-(--glass-border)">
@@ -139,7 +139,7 @@ export function ReferencePickerModal({
         exit={{ opacity: 0, scale: 0.96, y: 12 }}
         transition={{ duration: 0.2, ease: easing.standard }}
         onClick={(e) => e.stopPropagation()}
-        className={`relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl ${glassCard}`}
+        className={`relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl text-left ${glassCardOpaque}`}
       >
         <button
           type="button"
@@ -173,7 +173,7 @@ export function ReferencePickerModal({
                         className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                           activeSource === source
                             ? "bg-primary text-primary-contrast"
-                            : `text-secondary hover:text-on-surface ${glassPill}`
+                            : `text-secondary hover:text-on-surface ${glassPillOpaque}`
                         }`}
                       >
                         {source === "all" ? t("showcase.all") : sourceLabel(source, t)}
@@ -181,7 +181,7 @@ export function ReferencePickerModal({
                     ))}
                   </div>
 
-                  <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 ${glassCard}`}>
+                  <div className={`flex items-center gap-2 rounded-full px-3.5 py-2 ${glassCardOpaque}`}>
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-secondary">
                       <circle cx="11" cy="11" r="7" />
                       <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
@@ -218,7 +218,7 @@ export function ReferencePickerModal({
                   &larr; {t("gallery.backToBrowse")}
                 </button>
 
-                <div className={`rounded-lg p-5 ${glassCard}`}>
+                <div className={`rounded-lg p-5 ${glassCardOpaque}`}>
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-secondary">{sourceLabel(selected.source, t)}</p>
@@ -259,7 +259,7 @@ export function ReferencePickerModal({
                 </div>
 
                 {selected.source === "color-reference" && selected.colors ? (
-                  <div className={`overflow-hidden rounded-lg ${glassCard}`}>
+                  <div className={`overflow-hidden rounded-lg ${glassCardOpaque}`}>
                     <div className="flex h-32 w-full">
                       {selected.colors.map((hex, i) => (
                         <span key={i} className="h-full flex-1" style={{ backgroundColor: hex }} />
