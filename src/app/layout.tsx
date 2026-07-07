@@ -81,11 +81,6 @@ export default function RootLayout({
             />
             <span className="site-loader-brandtext">design!?</span>
           </div>
-          <div className="site-loader-dots">
-            <span className="site-loader-dot" />
-            <span className="site-loader-dot" />
-            <span className="site-loader-dot" />
-          </div>
         </div>
         <ThemeProvider>
           <LanguageProvider>

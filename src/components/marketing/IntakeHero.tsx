@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import Image from "next/image";
@@ -58,10 +58,16 @@ function RotatingHeadline({ variants }: { variants: string[] }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: durations.base, ease: easing.standard }}
-          className="flex items-center justify-center gap-2 font-display text-2xl font-bold sm:text-3xl"
+          className="flex flex-nowrap items-center justify-center gap-1.5 whitespace-nowrap font-display text-lg font-bold sm:gap-2 sm:text-2xl md:text-3xl"
         >
           {variants[index % variants.length]}
-          <Image src={headlineEmojis[index % headlineEmojis.length]} alt="" width={28} height={28} />
+          <Image
+            src={headlineEmojis[index % headlineEmojis.length]}
+            alt=""
+            width={28}
+            height={28}
+            className="h-5 w-5 shrink-0 sm:h-7 sm:w-7"
+          />
         </motion.h2>
       </AnimatePresence>
     </motion.div>
@@ -737,7 +743,7 @@ export function IntakeHero({
                 }}
                 placeholder={t("aiIntake.placeholder")}
                 rows={2}
-                className="w-full resize-none bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm"
+                className="w-full resize-none bg-transparent text-sm text-on-surface placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-secondary focus:outline-none sm:text-base md:text-sm"
               />
               <div className="mt-3 flex items-center justify-between">
                 <ModelPicker value={model} onChange={setModel} />
@@ -852,7 +858,7 @@ export function IntakeHero({
                     }}
                     placeholder={t("aiIntake.placeholder")}
                     rows={1}
-                    className="w-full resize-none bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm"
+                    className="w-full resize-none bg-transparent text-sm text-on-surface placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-secondary focus:outline-none sm:text-base md:text-sm"
                   />
                   <div className="mt-3 flex items-center justify-between">
                     <ModelPicker value={model} onChange={setModel} />

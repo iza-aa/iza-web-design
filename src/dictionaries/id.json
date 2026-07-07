@@ -16,9 +16,9 @@
     "reopenAria": "Buka lagi chat AI"
   },
   "aiIntake": {
-    "headlineVariants": ["Ceritakan tentang proyek Anda", "Apa yang ingin Anda bangun?", "Mari kita rancang bersama"],
+    "headlineVariants": ["Ceritakan proyek anda", "Apa yg ingin anda bangun?", "Mari kita rancang bersama"],
     "subheading": "Beberapa pertanyaan, lalu akan saya teruskan langsung ke Iza.",
-    "placeholder": "Jelaskan apa yang ingin Anda bangun…",
+    "placeholder": "Jelaskan yang ingin anda bangun…",
     "optionScreenshot": "Bagikan tangkapan layar referensi",
     "optionLink": "Bagikan tautan yang Anda suka",
     "optionNotSure": "Belum yakin — bantu saya jelajahi",
@@ -55,8 +55,8 @@
     "bannedRepeat": "Mengulanginya bikin waktu tunggu jadi 2x lipat tiap kali — sudah {strikes} kali."
   },
   "stepGuide": {
-    "title": "Sesi Anda",
-    "step1": "Ceritakan proyek Anda",
+    "title": "Sesi anda",
+    "step1": "Ceritakan proyek anda",
     "step2": "Jawab beberapa pertanyaan singkat",
     "step3": "Konfirmasi & bagikan kontak",
     "step4": "Terkirim ke {name}",
