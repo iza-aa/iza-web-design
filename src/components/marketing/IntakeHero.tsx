@@ -26,6 +26,9 @@ import geminiIcon from "@/assets/logo/google-gemini.svg";
 import emailIcon from "@/assets/logo/email.png";
 import whatsappIcon from "@/assets/logo/whatsapp.png";
 import instagramIcon from "@/assets/logo/instagram.png";
+import wavingHandEmoji from "@/assets/emoji/waving-hand_1f44b.png";
+import beamingFaceEmoji from "@/assets/emoji/beaming-face-with-smiling-eyes_1f601.png";
+import callMeHandEmoji from "@/assets/emoji/call-me-hand_1f919.png";
 
 const quickActions = [
   { labelKey: "aiIntake.optionScreenshot", prompt: "I'd like to share a reference screenshot of a design I like." },
@@ -34,6 +37,8 @@ const quickActions = [
 ];
 
 const MODEL_CHOICES: ModelChoice[] = ["auto", ...AI_MODELS.map((m) => m.id)];
+
+const headlineEmojis = [wavingHandEmoji, beamingFaceEmoji, callMeHandEmoji];
 
 function RotatingHeadline({ variants }: { variants: string[] }) {
   const [index, setIndex] = useState(0);
@@ -53,9 +58,10 @@ function RotatingHeadline({ variants }: { variants: string[] }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: durations.base, ease: easing.standard }}
-          className="font-display text-2xl font-bold sm:text-3xl"
+          className="flex items-center justify-center gap-2 font-display text-2xl font-bold sm:text-3xl"
         >
           {variants[index % variants.length]}
+          <Image src={headlineEmojis[index % headlineEmojis.length]} alt="" width={28} height={28} />
         </motion.h2>
       </AnimatePresence>
     </motion.div>
@@ -81,7 +87,7 @@ function ModelPicker({ value, onChange }: { value: ModelChoice; onChange: (v: Mo
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1.5 rounded-full border border-border-subtle px-2.5 py-1 text-xs text-secondary transition-colors hover:border-primary hover:text-on-surface"
       >
-        <Image src={geminiIcon} alt="" width={14} height={14} />
+        {value !== "auto" && <Image src={geminiIcon} alt="" width={14} height={14} />}
         {modelLabel(value)}
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }} className="text-[10px]">
           &#9662;
@@ -110,7 +116,7 @@ function ModelPicker({ value, onChange }: { value: ModelChoice; onChange: (v: Mo
                     : "text-secondary hover:bg-(--glass-bg) hover:text-on-surface"
                 }`}
               >
-                <Image src={geminiIcon} alt="" width={14} height={14} />
+                {choice !== "auto" && <Image src={geminiIcon} alt="" width={14} height={14} />}
                 {modelLabel(choice)}
               </button>
             ))}

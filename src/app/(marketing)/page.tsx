@@ -11,18 +11,50 @@ import { useIntakeVisibility } from "@/lib/intake-visibility";
 import { useLanguage } from "@/lib/language";
 
 const featureBlurbs = [
-  { titleKey: "homepage.feature1Title", bodyKey: "homepage.feature1Body", position: "left-[9%] top-[1%] text-left" },
-  { titleKey: "homepage.feature2Title", bodyKey: "homepage.feature2Body", position: "left-[10%] bottom-[9%] text-left" },
-  { titleKey: "homepage.feature3Title", bodyKey: "homepage.feature3Body", position: "right-[5%] top-[22%] text-left" },
-  { titleKey: "homepage.feature4Title", bodyKey: "homepage.feature4Body", position: "right-[8%] bottom-[6%] text-left" },
+  {
+    titleKey: "homepage.feature1Title",
+    bodyKey: "homepage.feature1Body",
+    position: "left-[9%] top-[1%] text-left",
+    emphasis: { en: "scope", id: "cakupan" },
+  },
+  {
+    titleKey: "homepage.feature2Title",
+    bodyKey: "homepage.feature2Body",
+    position: "left-[10%] bottom-[9%] text-left",
+    emphasis: { en: "personally", id: "langsung" },
+  },
+  {
+    titleKey: "homepage.feature3Title",
+    bodyKey: "homepage.feature3Body",
+    position: "right-[5%] top-[22%] text-left",
+    emphasis: { en: "structured", id: "terstruktur" },
+  },
+  {
+    titleKey: "homepage.feature4Title",
+    bodyKey: "homepage.feature4Body",
+    position: "right-[8%] bottom-[6%] text-left",
+    emphasis: { en: "automatically", id: "otomatis" },
+  },
 ];
+
+function EmphasizedBody({ text, word }: { text: string; word: string }) {
+  const i = text.toLowerCase().indexOf(word.toLowerCase());
+  if (i === -1) return <p className="text-secondary">{text}</p>;
+  return (
+    <p className="text-secondary">
+      {text.slice(0, i)}
+      <em className="font-bold italic text-on-surface">{text.slice(i, i + word.length)}</em>
+      {text.slice(i + word.length)}
+    </p>
+  );
+}
 
 export default function HomePage() {
   const reduced = useReducedMotion();
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
   const { reopenTick, closeTick, closed } = useIntakeVisibility();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const heroRef = useRef<HTMLDivElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
 
@@ -122,8 +154,8 @@ export default function HomePage() {
                           }
                     }
                   >
-                    <p className="font-display text-lg font-semibold text-primary">{t(f.titleKey)}</p>
-                    <p className="text-secondary">{t(f.bodyKey)}</p>
+                    <p className="font-display text-lg font-semibold text-on-surface">{t(f.titleKey)}</p>
+                    <EmphasizedBody text={t(f.bodyKey)} word={f.emphasis[locale]} />
                   </motion.div>
                 </motion.div>
               ))}

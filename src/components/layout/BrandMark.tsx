@@ -34,7 +34,7 @@ export function BrandMark() {
         priority
       />
       <span className="hidden font-display text-sm font-bold text-on-surface sm:inline-block sm:text-base">
-        web design
+        design
         <AnimatePresence mode="wait">
           <motion.span
             key={index}

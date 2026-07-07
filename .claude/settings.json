@@ -58,7 +58,9 @@
       "Bash(curl -s -o /tmp/testfont.woff2 -w \"size: %{size_download} bytes, http: %{http_code}\\\\n\" \"http://localhost:3000/_next/static/media/e1ccd2766b08c828-s.15gdzqknx46iu.woff2\")",
       "Bash(xxd /tmp/testfont.woff2)",
       "Bash(powershell -Command \"Get-Process -Id 32020 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName\")",
-      "Bash(taskkill //PID 30316 //F)"
+      "Bash(taskkill //PID 30316 //F)",
+      "Bash(find assets/emoji -maxdepth 2)",
+      "Bash(find . -maxdepth 2 -iname \"*emoji*\")"
     ],
     "additionalDirectories": [
       "d:\\iza-web-design",
