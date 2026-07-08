@@ -31,6 +31,10 @@
     "optionLink": "Share a link you like",
     "optionNotSure": "Not sure yet — help me explore",
     "typeOwnAnswer": "Type my own answer",
+    "checklistAddPlaceholder": "Add another feature…",
+    "checklistSelectedPrefix": "Selected features:",
+    "checklistExtraPrefix": "Additional features:",
+    "checklistNoneAnswer": "None from this list.",
     "summaryTitle": "Summary",
     "briefSentTo": "Brief sent to {name}",
     "fields": {
@@ -41,7 +45,9 @@
       "budgetRange": "Budget range",
       "timeline": "Timeline",
       "description": "Description",
-      "references": "References"
+      "references": "References",
+      "features": "Features & pricing breakdown",
+      "priceEstimate": "Price estimate"
     },
     "contactMethods": {
       "email": "Email",

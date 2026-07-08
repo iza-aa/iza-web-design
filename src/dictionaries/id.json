@@ -31,6 +31,10 @@
     "optionLink": "Bagikan tautan yang Anda suka",
     "optionNotSure": "Belum yakin — bantu saya jelajahi",
     "typeOwnAnswer": "Ketik jawaban sendiri",
+    "checklistAddPlaceholder": "Tambah fitur lain…",
+    "checklistSelectedPrefix": "Fitur dipilih:",
+    "checklistExtraPrefix": "Fitur tambahan:",
+    "checklistNoneAnswer": "Tidak ada dari daftar ini.",
     "summaryTitle": "Rangkuman",
     "briefSentTo": "Brief dikirim ke {name}",
     "fields": {
@@ -41,7 +45,9 @@
       "budgetRange": "Kisaran anggaran",
       "timeline": "Linimasa",
       "description": "Deskripsi",
-      "references": "Referensi"
+      "references": "Referensi",
+      "features": "Rincian fitur & harga",
+      "priceEstimate": "Estimasi harga"
     },
     "contactMethods": {
       "email": "Email",

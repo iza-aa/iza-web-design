@@ -222,6 +222,134 @@ function QuestionCard({
   );
 }
 
+function ChecklistCard({
+  prompt,
+  options,
+  onAnswer,
+  addLabel,
+  t,
+}: {
+  prompt: string;
+  options: string[];
+  onAnswer: (text: string) => void;
+  addLabel: string;
+  t: (path: string) => string;
+}) {
+  // Indices, not the label strings themselves — two rate-card items (or a
+  // model-generated checklist) could share identical text, and keying off
+  // the string would toggle both/collapse them into one Set entry.
+  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [extras, setExtras] = useState<string[]>([]);
+  const [customText, setCustomText] = useState("");
+
+  function toggle(i: number) {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
+
+  function addExtra() {
+    const trimmed = customText.trim();
+    if (!trimmed) return;
+    setExtras((prev) => [...prev, trimmed]);
+    setCustomText("");
+  }
+
+  function removeExtra(i: number) {
+    setExtras((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  function submit() {
+    const selected = options.filter((_, i) => checked.has(i));
+    const parts: string[] = [];
+    if (selected.length > 0) parts.push(`${t("aiIntake.checklistSelectedPrefix")} ${selected.join(", ")}`);
+    if (extras.length > 0) parts.push(`${t("aiIntake.checklistExtraPrefix")} ${extras.join(", ")}`);
+    onAnswer(parts.length > 0 ? parts.join(". ") : t("aiIntake.checklistNoneAnswer"));
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 40 }}
+      transition={{ duration: 0.3, ease: easing.standard }}
+      className="overflow-hidden rounded-xl border border-border-subtle bg-(--glass-input-bg)"
+    >
+      <p className="px-4 pb-3 pt-4 text-sm font-semibold text-on-surface">{prompt}</p>
+      <div className="divide-y divide-border-subtle border-t border-border-subtle">
+        {options.map((opt, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => toggle(i)}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-on-surface transition-colors hover:bg-(--glass-bg)"
+          >
+            <span
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs transition-colors ${
+                checked.has(i)
+                  ? "border-primary bg-primary text-primary-contrast"
+                  : "border-border-subtle text-transparent"
+              }`}
+            >
+              &#10003;
+            </span>
+            {opt}
+          </button>
+        ))}
+      </div>
+      {extras.length > 0 && (
+        <div className="flex flex-wrap gap-2 border-t border-border-subtle px-4 py-3">
+          {extras.map((extra, i) => (
+            <button
+              key={`${extra}-${i}`}
+              type="button"
+              onClick={() => removeExtra(i)}
+              className="flex items-center gap-1.5 rounded-full border border-border-subtle px-3 py-1 text-xs text-on-surface hover:border-primary"
+            >
+              {extra}
+              <span className="text-secondary">&times;</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-3 border-t border-border-subtle px-4 py-3">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border-subtle text-xs text-secondary">
+          &#9998;
+        </span>
+        <input
+          value={customText}
+          onChange={(e) => setCustomText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addExtra();
+          }}
+          placeholder={addLabel}
+          className="flex-1 bg-transparent text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm"
+        />
+        <button
+          type="button"
+          onClick={addExtra}
+          disabled={!customText.trim()}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border-subtle text-sm text-on-surface disabled:opacity-40"
+        >
+          +
+        </button>
+      </div>
+      <div className="flex justify-end border-t border-border-subtle px-4 py-3">
+        <button
+          type="button"
+          onClick={submit}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-on-surface text-surface"
+        >
+          &uarr;
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 const CONTACT_METHODS = [
   { key: "email", icon: emailIcon },
   { key: "whatsapp", icon: whatsappIcon },
@@ -379,7 +507,7 @@ function extractSummary(text: string): { clean: string; summary: Brief | null } 
   return { clean, summary: value };
 }
 
-type Question = { prompt: string; options: string[]; kind?: "contact" | "references" };
+type Question = { prompt: string; options: string[]; kind?: "contact" | "references" | "checklist" };
 
 function extractQuestion(text: string): { clean: string; question: Question | null } {
   const { clean, value } = extractBlock<{ prompt?: string; options?: string[]; kind?: string }>(text, "question");
@@ -389,7 +517,14 @@ function extractQuestion(text: string): { clean: string; question: Question | nu
     question: {
       prompt: value.prompt,
       options: Array.isArray(value.options) ? value.options : [],
-      kind: value.kind === "contact" ? "contact" : value.kind === "references" ? "references" : undefined,
+      kind:
+        value.kind === "contact"
+          ? "contact"
+          : value.kind === "references"
+            ? "references"
+            : value.kind === "checklist"
+              ? "checklist"
+              : undefined,
     },
   };
 }
@@ -410,7 +545,17 @@ function detectIndonesian(text: string): boolean {
   return INDONESIAN_WORDS.test(text);
 }
 
-const FIELD_KEYS = ["name", "email", "projectType", "budgetRange", "timeline", "description", "references"];
+const FIELD_KEYS = [
+  "name",
+  "email",
+  "projectType",
+  "budgetRange",
+  "timeline",
+  "description",
+  "references",
+  "features",
+  "priceEstimate",
+];
 
 function fieldLabel(key: string, t: (path: string) => string) {
   const path = `aiIntake.fields.${key}`;
@@ -485,7 +630,11 @@ export function IntakeHero({
       : null;
   // No dedicated card for options-less, kindless (open-ended) questions — just the normal composer.
   const activeQuestion =
-    lastQuestion && (lastQuestion.options.length > 0 || lastQuestion.kind === "contact" || lastQuestion.kind === "references")
+    lastQuestion &&
+    (lastQuestion.options.length > 0 ||
+      lastQuestion.kind === "contact" ||
+      lastQuestion.kind === "references" ||
+      lastQuestion.kind === "checklist")
       ? lastQuestion
       : null;
 
@@ -834,6 +983,15 @@ export function IntakeHero({
                   prompt={activeQuestion.prompt}
                   onAnswer={submit}
                   nameLabel={t("aiIntake.fields.name")}
+                  t={t}
+                />
+              ) : activeQuestion?.kind === "checklist" ? (
+                <ChecklistCard
+                  key={activeQuestion.prompt}
+                  prompt={activeQuestion.prompt}
+                  options={activeQuestion.options}
+                  onAnswer={submit}
+                  addLabel={t("aiIntake.checklistAddPlaceholder")}
                   t={t}
                 />
               ) : activeQuestion ? (
