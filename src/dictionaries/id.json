@@ -102,9 +102,29 @@
     "feature4Body": "Brief yang sudah dikonfirmasi beserta transkrip lengkap otomatis masuk ke email Iza.",
     "recentWork": "Karya terbaru"
   },
-  "start": {
-    "heading": "Segera hadir",
-    "body": "Chat intake proyek terpandu akan hadir di Phase 2. Sampai saat itu, hubungi langsung dan ceritakan apa yang ingin Anda bangun."
+  "cinematicHero": {
+    "tagline1": "Ceritakan proyeknya,",
+    "tagline2": "kami yang rancang.",
+    "tagline3": "Satu obrolan. Satu brief.",
+    "cardHeading": "Dari obrolan jadi brief.",
+    "cardDescription": "IZA UI mengubah percakapan santai jadi brief proyek yang rapi dan terstruktur — ditinjau langsung, bukan sekadar dicatat.",
+    "ctaHeading": "Mulai proyek Anda.",
+    "ctaDescription": "Ceritakan yang ingin dibangun, dapatkan estimasi harga per fitur, dan brief lengkap langsung terkirim ke Iza.",
+    "badge1Title": "Brief Terkirim",
+    "badge1Sub": "Diteruskan otomatis",
+    "badge2Title": "Ditinjau Iza",
+    "badge2Sub": "Respons dalam hari",
+    "phoneEyebrow": "Live",
+    "phoneTitle": "Aktivitas",
+    "chatPlaceholder": "Tanya apa saja…",
+    "chatPrompt": "Bikinin situs untuk toko saya…",
+    "notif1Title": "Pesan terkirim",
+    "notif1Time": "Baru saja",
+    "notif2Title": "Diteruskan ke email",
+    "notif2Time": "2 dtk",
+    "notif3Title": "Iza sedang mengerjakan…",
+    "notif4Title": "Situs terkirim ke Anda",
+    "notif4Time": "8 dtk"
   },
   "about": {
     "heading": "Tentang IZA UI",
@@ -117,16 +137,7 @@
     "whatIBuildBodySuffix": "untuk contohnya."
   },
   "showcase": {
-    "heading": "Showcase",
-    "intro": "Proyek asli. Teks problem/approach/outcome masih draft — visual dan strukturnya sudah final.",
-    "problem": "Masalah",
-    "approach": "Pendekatan",
-    "outcome": "Hasil",
-    "all": "Semua",
-    "back": "Kembali ke showcase",
-    "prev": "Sebelumnya",
-    "next": "Selanjutnya",
-    "visit": "Kunjungi situs live"
+    "all": "Semua"
   },
   "gallery": {
     "heading": "Galeri Desain",
@@ -140,7 +151,7 @@
     "copyPrompt": "Salin prompt",
     "copied": "Tersalin!",
     "staticPreview": "Preview statis",
-    "back": "Kembali ke beranda",
+    "back": "Kembali ke galeri",
     "notFound": "Entri desain tidak ditemukan.",
     "viewSource": "Lihat di Superdesign.dev",
     "loading": "Memuat entri desain…",

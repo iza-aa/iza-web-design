@@ -19,9 +19,9 @@ import lightContactIcon from "@/assets/logo/lightcontacticon.png";
 
 const items = [
   {
-    href: "/",
+    href: "/work",
     labelKey: "nav.work",
-    match: (p: string) => p === "/" || p.startsWith("/about") || p.startsWith("/showcase") || p.startsWith("/start"),
+    match: (p: string) => p.startsWith("/work") || p.startsWith("/about"),
     icon: (
       <div className="relative h-full w-full overflow-hidden rounded-sm">
         <Image src={logoIza} alt="" fill sizes="48px" priority className="object-cover" />
@@ -56,7 +56,7 @@ export function DockNav() {
   const { theme } = useTheme();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
-  const showReopen = pathname === "/" && closed;
+  const showReopen = pathname === "/work" && closed;
 
   const entries = [
     ...(showReopen

@@ -34,7 +34,7 @@ export default function AboutPage() {
         <h2 className="font-display text-xl font-semibold">{t("about.whatIBuildHeading")}</h2>
         <p className="mt-3 text-secondary">
           {t("about.whatIBuildBodyPrefix")}{" "}
-          <a href="/showcase" className="text-primary hover:underline">
+          <a href="/work#gallery" className="text-primary hover:underline">
             {t("about.recentWorkLink")}
           </a>{" "}
           {t("about.whatIBuildBodySuffix")}

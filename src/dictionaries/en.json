@@ -102,9 +102,29 @@
     "feature4Body": "Confirmed brief and full transcript land in Iza's inbox automatically.",
     "recentWork": "Recent work"
   },
-  "start": {
-    "heading": "Coming soon",
-    "body": "The guided project intake chat lands in Phase 2. Until then, reach out directly and describe what you're building."
+  "cinematicHero": {
+    "tagline1": "Tell me about the project,",
+    "tagline2": "we'll design it.",
+    "tagline3": "One chat. One brief.",
+    "cardHeading": "From chat to brief.",
+    "cardDescription": "IZA UI turns a casual conversation into a clean, structured project brief — reviewed personally, not just logged.",
+    "ctaHeading": "Start your project.",
+    "ctaDescription": "Describe what you want to build, get a per-feature price estimate, and a full brief goes straight to Iza.",
+    "badge1Title": "Brief Sent",
+    "badge1Sub": "Forwarded automatically",
+    "badge2Title": "Reviewed by Iza",
+    "badge2Sub": "Reply within days",
+    "phoneEyebrow": "Live",
+    "phoneTitle": "Activity",
+    "chatPlaceholder": "Ask anything…",
+    "chatPrompt": "Build a site for my shop…",
+    "notif1Title": "Message sent",
+    "notif1Time": "Just now",
+    "notif2Title": "Forwarded to email",
+    "notif2Time": "2s",
+    "notif3Title": "Iza is working on it…",
+    "notif4Title": "Site delivered to you",
+    "notif4Time": "8s"
   },
   "about": {
     "heading": "About IZA UI",
@@ -117,16 +137,7 @@
     "whatIBuildBodySuffix": "for examples."
   },
   "showcase": {
-    "heading": "Showcase",
-    "intro": "Real projects. Problem/approach/outcome copy is still draft on each — the visuals and structure are final.",
-    "problem": "Problem",
-    "approach": "Approach",
-    "outcome": "Outcome",
-    "all": "All",
-    "back": "Back to showcase",
-    "prev": "Previous",
-    "next": "Next",
-    "visit": "Visit live site"
+    "all": "All"
   },
   "gallery": {
     "heading": "Design Gallery",
@@ -140,7 +151,7 @@
     "copyPrompt": "Copy prompt",
     "copied": "Copied!",
     "staticPreview": "Static preview",
-    "back": "Back to home",
+    "back": "Back to gallery",
     "notFound": "Design entry not found.",
     "viewSource": "View on Superdesign.dev",
     "loading": "Loading design entries…",

@@ -49,7 +49,7 @@ function EmphasizedBody({ text, word }: { text: string; word: string }) {
   );
 }
 
-export default function HomePage() {
+export default function WorkPage() {
   const reduced = useReducedMotion();
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
@@ -66,6 +66,16 @@ export default function HomePage() {
     if (reopenTick === 0) return;
     heroRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [reopenTick]);
+
+  // Arriving from the homepage's "view all work" CTA (/work#gallery) drops
+  // the visitor straight at the gallery instead of the chat at the top.
+  useEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#gallery") return;
+    const id = setTimeout(() => {
+      galleryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    return () => clearTimeout(id);
+  }, []);
 
   // Closing the intro card (its own X button, not the scroll-driven auto-hide
   // — see closeTick's definition) drops the visitor straight into the design

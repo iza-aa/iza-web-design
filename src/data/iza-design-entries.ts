@@ -5,14 +5,12 @@ import assetBusinessCommand from "@/assets/project/asset-2.png";
 import assetHidro from "@/assets/project/asset-3.png";
 
 /**
- * Iza-authored gallery entries — real shipped projects, screenshot-sourced
- * (same assets as src/lib/showcase.ts's case studies). To add another one,
- * just push a new object onto `projects` below — nothing else in this file
- * needs to change.
+ * Iza-authored gallery entries — real shipped projects, screenshot-sourced.
+ * To add another one, just push a new object onto `projects` below —
+ * nothing else in this file needs to change.
  *
- * `description`/`prompt` below are draft copy (same "needs owner review"
- * status as showcase.ts's case studies) — replace with the real project
- * story/design-spec whenever it's written.
+ * `description`/`prompt` below are draft copy ("needs owner review" status)
+ * — replace with the real project story/design-spec whenever it's written.
  */
 type IzaProject = {
   slug: string;

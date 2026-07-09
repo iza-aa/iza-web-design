@@ -60,7 +60,7 @@ export default function RootLayout({
         don't control — this only silences that specific noisy warning,
         it does not hide real hydration bugs in children.
       */}
-      <body suppressHydrationWarning className="pb-24">
+      <body suppressHydrationWarning className="">
         <div id="site-loader" aria-hidden="true">
           <div className="site-loader-brand">
             <Image

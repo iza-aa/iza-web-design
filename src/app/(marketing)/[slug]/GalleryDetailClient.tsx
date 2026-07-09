@@ -51,7 +51,7 @@ export function GalleryDetailClient({ slug }: { slug: string }) {
   if (!entry) {
     return (
       <section className="mx-auto max-w-2xl text-left">
-        <Link href="/" className="text-sm text-secondary transition-colors hover:text-on-surface">
+        <Link href="/work#gallery" className="text-sm text-secondary transition-colors hover:text-on-surface">
           &larr; {t("gallery.back")}
         </Link>
         <p className="mt-4 text-secondary">{t("gallery.notFound")}</p>
@@ -67,7 +67,7 @@ export function GalleryDetailClient({ slug }: { slug: string }) {
       className="mx-auto flex max-w-6xl flex-col gap-6 text-left"
     >
       <motion.div variants={fade}>
-        <Link href="/" className="text-sm text-secondary transition-colors hover:text-on-surface">
+        <Link href="/work#gallery" className="text-sm text-secondary transition-colors hover:text-on-surface">
           &larr; {t("gallery.back")}
         </Link>
       </motion.div>
