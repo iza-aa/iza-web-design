@@ -67,7 +67,7 @@ export function DockNav() {
             label: t("nav.reopenChat"),
             icon: (
               <div className="relative h-full w-full overflow-hidden rounded-sm">
-                <Image src={theme === "dark" ? logoAiDark : logoAiLight} alt="" fill sizes="48px" className="object-cover" />
+                <Image src={theme === "dark" ? logoAiDark : logoAiLight} alt="" fill sizes="48px" priority className="object-cover" />
               </div>
             ),
             active: undefined as boolean | undefined,
@@ -94,6 +94,7 @@ export function DockNav() {
             alt=""
             fill
             sizes="48px"
+            priority
             className="object-cover"
           />
         </div>
