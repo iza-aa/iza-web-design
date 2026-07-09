@@ -29,6 +29,31 @@ function getApiKeys(): string[] {
     .filter(Boolean);
 }
 
+// A raw attached image is far heavier than text, and this route resends the
+// *entire* message history to the model on every turn (no summarization yet
+// — see "Gemini Free-Tier Considerations" in docs/ai-intake-chat.md). Left
+// unchecked, one photo shared early in a long conversation gets re-uploaded
+// and re-tokenized on every single subsequent turn. Only the latest message
+// keeps its real image; every earlier one is swapped for a short text stub
+// — the model already described it in its own prior reply (see IMAGE
+// ATTACHMENTS in intake-prompt.ts), so nothing is actually lost, just not
+// replayed as pixels anymore.
+function pruneOldImages(messages: UIMessage[]): UIMessage[] {
+  const lastIndex = messages.length - 1;
+  return messages.map((message, i) => {
+    if (i === lastIndex) return message;
+    if (!message.parts.some((part) => part.type === "file")) return message;
+    return {
+      ...message,
+      parts: message.parts.map((part) =>
+        part.type === "file"
+          ? { type: "text" as const, text: "[client shared an image earlier in this conversation — see your own prior reply for what it showed]" }
+          : part,
+      ),
+    };
+  });
+}
+
 type PeekedStream = {
   buffered: UIMessageChunk[];
   reader: ReadableStreamDefaultReader<UIMessageChunk>;
@@ -97,7 +122,7 @@ export async function POST(req: Request) {
     preferredModel,
   }: { messages: UIMessage[]; model?: ModelChoice; preferredModel?: ModelId } = await req.json();
 
-  const modelMessages = await convertToModelMessages(messages);
+  const modelMessages = await convertToModelMessages(pruneOldImages(messages));
   const system = INTAKE_SYSTEM_PROMPT;
 
   // Explicit model choice: locked to that model, but still races accounts —

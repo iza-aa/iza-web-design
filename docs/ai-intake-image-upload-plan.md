@@ -1,5 +1,5 @@
 ---
-status: planning — approach confirmed (hybrid), not yet implemented
+status: implemented 2026-07-09 (all rollout steps, including phase 2 email attachment)
 name: AI Intake Chat — Image Upload
 description: Let a client attach a reference photo/screenshot directly in the intake chat so the model (Gemini vision) actually looks at it, instead of the current "Share a reference screenshot" quick action just sending canned text with no real attachment.
 relatesTo: ai-intake-chat.md
@@ -53,16 +53,16 @@ Add explicit instructions for the image case:
 
 **Phase 2 (explicitly deferred):** attach the actual compressed image to the brief email via `nodemailer`'s `attachments` (base64 buffer, inline `cid:` reference in the HTML body) so Iza can see the original, not just a text description. Needs the image to survive from the chat turn through to `latestBrief` — either re-threaded through `transcript`/`brief` payloads or (cleaner) stored in a small state slice keyed by message id, separate from the pruning done for the model call above (pruning only affects what's *replayed to the model*, not what the client still holds for the email step).
 
-## Open Questions (resolve before implementation)
-- Exact soft cap on images per conversation (proposed: 3) and whether exceeding it should block or just stop attaching further images to the model context.
-- Whether to support paste-from-clipboard (common for screenshots) in addition to the file picker — likely a cheap add (`onPaste` on the textarea checking `e.clipboardData.files`) but not required for v1.
-- HEIC (iPhone default format) — canvas re-encoding requires the browser to decode it first, which not all browsers do reliably. Decide whether to detect and reject HEIC with a friendly "please share as JPEG/PNG" hint, or pull in a conversion library.
+## Open Questions
+- **Resolved:** soft cap is 3 images per conversation (`MAX_IMAGES_PER_CONVERSATION`, `IntakeHero.tsx`) — the attach button just disables past the cap with a `title` tooltip explaining why, no hard block/error state needed since it's simply unclickable.
+- **Still open, not implemented:** paste-from-clipboard. The file picker is the only way in for v1.
+- **Still open, not implemented:** HEIC handling. `compressImage()` relies on `<img>` loading the raw file via a data URL — if a browser can't decode HEIC that way, the `catch` block surfaces the generic `imageInvalidType` error rather than a HEIC-specific hint. Worth revisiting if this turns out to be a common real-world failure (iPhone clients specifically).
 
 ## Rollout
-1. Client picker + compression + preview + send (image reaches the model, gets described, folds into `references`).
-2. Server-side pruning of stale images from replayed history.
-3. Bubble rendering of attachments in the transcript.
-4. System prompt updates + guardrail testing (off-topic images, repeated images, abuse case).
-5. Phase 2: email attachment forwarding.
+1. [x] Client picker + compression + preview + send (image reaches the model, gets described, folds into `references`).
+2. [x] Server-side pruning of stale images from replayed history.
+3. [x] Bubble rendering of attachments in the transcript.
+4. [x] System prompt updates (guardrail testing with real transcripts still recommended before considering this fully proven out).
+5. [x] Phase 2: email attachment forwarding — the original compressed image now rides along to Iza's inbox as an inline `cid:` attachment (`/api/send-brief/route.ts`), not just the model's text description in `references`.
 
-Once implemented, fold the shipped behavior back into `ai-intake-chat.md` (guardrails, quick actions, extractedFields sections) per this repo's usual doc convention — this file stays a planning doc, not living documentation.
+Shipped behavior folded back into `ai-intake-chat.md`'s "Image Attachments" section per this repo's usual doc convention — that file is now the living reference for all of this; this plan doc stays around for the Decision/Open Questions history above.

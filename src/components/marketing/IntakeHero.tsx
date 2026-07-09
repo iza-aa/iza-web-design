@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type FileUIPart } from "ai";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
@@ -31,10 +31,63 @@ import beamingFaceEmoji from "@/assets/emoji/beaming-face-with-smiling-eyes_1f60
 import callMeHandEmoji from "@/assets/emoji/call-me-hand_1f919.png";
 
 const quickActions = [
-  { labelKey: "aiIntake.optionScreenshot", prompt: "I'd like to share a reference screenshot of a design I like." },
-  { labelKey: "aiIntake.optionLink", prompt: "I'd like to share a link to a site I like." },
-  { labelKey: "aiIntake.optionNotSure", prompt: "I'm not sure yet what I need — can you help me explore?" },
+  { labelKey: "aiIntake.optionScreenshot", kind: "upload" as const },
+  { labelKey: "aiIntake.optionLink", kind: "prompt" as const, prompt: "I'd like to share a link to a site I like." },
+  {
+    labelKey: "aiIntake.optionNotSure",
+    kind: "prompt" as const,
+    prompt: "I'm not sure yet what I need — can you help me explore?",
+  },
 ];
+
+// Client-side compression keeps the outgoing payload small regardless of
+// what the client's phone camera produced — this matters more than usual
+// here since /api/intake resends full message history every turn on a
+// shared free-tier quota (see pruneOldImages in route.ts for the other
+// half of that mitigation).
+const MAX_IMAGE_SOURCE_BYTES = 15 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 1280;
+const IMAGE_JPEG_QUALITY = 0.75;
+const MAX_IMAGES_PER_CONVERSATION = 3;
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    // `window.Image` (not the bare `Image` identifier — that's this file's
+    // next/image import) to reach the actual DOM image constructor.
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image failed to load"));
+    img.src = src;
+  });
+}
+
+async function compressImage(file: File): Promise<{ dataUrl: string; mediaType: string; filename: string }> {
+  const rawDataUrl = await readFileAsDataUrl(file);
+  const img = await loadImageElement(rawDataUrl);
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(img.width, img.height));
+  const width = Math.max(1, Math.round(img.width * scale));
+  const height = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return { dataUrl: rawDataUrl, mediaType: file.type || "image/jpeg", filename: file.name };
+  ctx.drawImage(img, 0, 0, width, height);
+  return {
+    dataUrl: canvas.toDataURL("image/jpeg", IMAGE_JPEG_QUALITY),
+    mediaType: "image/jpeg",
+    filename: file.name.replace(/\.\w+$/, "") + ".jpg",
+  };
+}
 
 const MODEL_CHOICES: ModelChoice[] = ["auto", ...AI_MODELS.map((m) => m.id)];
 
@@ -255,6 +308,66 @@ function ModelPicker({ value, onChange }: { value: ModelChoice; onChange: (v: Mo
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function AttachImageButton({
+  onClick,
+  disabled,
+  ariaLabel,
+  title,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  ariaLabel: string;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      title={title}
+      className="flex h-6 w-6 shrink-0 items-center justify-center  text-secondary transition-colors hover:border-primary hover:text-on-surface disabled:opacity-40"
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+      </svg>
+    </button>
+  );
+}
+
+function PendingImagePreview({
+  image,
+  error,
+  onRemove,
+  removeAria,
+}: {
+  image: { dataUrl: string; filename: string } | null;
+  error: string | null;
+  onRemove: () => void;
+  removeAria: string;
+}) {
+  if (!image && !error) return null;
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      {image && (
+        // eslint-disable-next-line @next/next/no-img-element -- local data: URL preview, next/image can't optimize it anyway
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border-subtle">
+          <img src={image.dataUrl} alt="" className="h-full w-full object-cover" />
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={removeAria}
+            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-on-surface text-[9px] leading-none text-surface"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+      {error && <p className="text-xs text-error">{error}</p>}
     </div>
   );
 }
@@ -626,7 +739,7 @@ function BannedCard({
 }
 
 type Brief = Record<string, string>;
-type MessagePart = { type: string; text?: string };
+type MessagePart = { type: string; text?: string; mediaType?: string; url?: string; filename?: string };
 
 function extractBlock<T>(text: string, tag: string): { clean: string; value: T | null } {
   const match = text.match(new RegExp("```" + tag + "\\s*([\\s\\S]*?)```"));
@@ -676,6 +789,10 @@ function messageText(parts: MessagePart[]) {
     .filter((p) => p.type === "text")
     .map((p) => p.text ?? "")
     .join("");
+}
+
+function messageImages(parts: MessagePart[]) {
+  return parts.filter((p): p is MessagePart & { url: string } => p.type === "file" && typeof p.url === "string");
 }
 
 // Light heuristic so the UI chrome (dl labels, close buttons, etc.) matches
@@ -737,6 +854,11 @@ export function IntakeHero({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [ban, setBan] = useState<BanState | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [pendingImage, setPendingImage] = useState<{ dataUrl: string; mediaType: string; filename: string } | null>(
+    null,
+  );
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const sentRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -758,6 +880,11 @@ export function IntakeHero({
   const started = messages.length > 0;
   const isBanned = !!ban && ban.until > now;
   const banRemainingMs = ban ? ban.until - now : 0;
+  const imagesSentCount = messages.reduce(
+    (count, m) => count + messageImages(m.parts as MessagePart[]).length,
+    0,
+  );
+  const imageCapReached = imagesSentCount >= MAX_IMAGES_PER_CONVERSATION;
 
   const assistantTexts = messages.filter((m) => m.role === "assistant").map((m) => messageText(m.parts as MessagePart[]));
   const latestBrief = assistantTexts.map((text) => extractBrief(text).brief).find((b) => b !== null);
@@ -903,7 +1030,13 @@ export function IntakeHero({
       const raw = messageText(m.parts as MessagePart[]);
       const clean =
         m.role === "assistant" ? extractQuestion(extractSummary(extractBrief(raw).clean).clean).clean : raw;
-      return { role: m.role, text: clean };
+      // Client's own in-memory `messages` still holds the original attached
+      // images (server-side pruning in /api/intake only affects what's
+      // replayed to the model, not this state) — riding them along here is
+      // what lets the owner's brief email show the real photo, not just the
+      // model's text description in `references`.
+      const images = messageImages(m.parts as MessagePart[]).map((p) => p.url);
+      return { role: m.role, text: clean, images: images.length > 0 ? images : undefined };
     });
 
     fetch("/api/send-brief", {
@@ -926,10 +1059,10 @@ export function IntakeHero({
     setNow(Date.now());
   }
 
-  function submit(text: string) {
+  function submit(text: string, files?: FileUIPart[]) {
     const trimmed = text.trim();
-    if (!trimmed || busy || isBanned) return;
-    if (isAbusiveMessage(trimmed)) {
+    if ((!trimmed && !files?.length) || busy || isBanned) return;
+    if (trimmed && isAbusiveMessage(trimmed)) {
       triggerBan();
       setInput("");
       return;
@@ -938,9 +1071,38 @@ export function IntakeHero({
     // (never forces back to English), so it still catches a client who
     // opened with an English quick-action button but writes in Indonesian
     // from their first typed message onward.
-    if (detectIndonesian(trimmed)) setLocale("id");
-    sendMessage({ text: trimmed });
+    if (trimmed && detectIndonesian(trimmed)) setLocale("id");
+    // An image with no typed caption still needs some text — the model
+    // reads an empty user turn as nothing having been sent at all.
+    sendMessage({ text: trimmed || t("aiIntake.imageDefaultCaption"), files });
     setInput("");
+    setPendingImage(null);
+    setImageError(null);
+  }
+
+  function pendingFiles(): FileUIPart[] | undefined {
+    if (!pendingImage) return undefined;
+    return [{ type: "file", mediaType: pendingImage.mediaType, url: pendingImage.dataUrl, filename: pendingImage.filename }];
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImageError(null);
+    if (!file.type.startsWith("image/")) {
+      setImageError(t("aiIntake.imageInvalidType"));
+      return;
+    }
+    if (file.size > MAX_IMAGE_SOURCE_BYTES) {
+      setImageError(t("aiIntake.imageTooLarge"));
+      return;
+    }
+    try {
+      setPendingImage(await compressImage(file));
+    } catch {
+      setImageError(t("aiIntake.imageInvalidType"));
+    }
   }
 
   function selectReference(entry: DesignEntry) {
@@ -985,10 +1147,15 @@ export function IntakeHero({
       );
     }
     const { clean } = extractBlock<unknown>(text, "refcontext");
+    const images = messageImages(m.parts as MessagePart[]);
     return (
       <div key={m.id} className="flex justify-end">
         <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5">
-          <p className="text-sm font-medium text-primary-contrast">{clean}</p>
+          {images.map((img, i) => (
+            // eslint-disable-next-line @next/next/no-img-element -- data: URL attachment, next/image can't optimize it
+            <img key={i} src={img.url} alt="" className="mb-2 max-h-56 w-full rounded-lg object-cover" />
+          ))}
+          {clean && <p className="text-sm font-medium text-primary-contrast">{clean}</p>}
         </div>
       </div>
     );
@@ -1052,13 +1219,19 @@ export function IntakeHero({
             <p className="mt-3 text-secondary">{t("aiIntake.subheading")}</p>
 
             <div className="mt-6 rounded-xl border border-border-subtle bg-(--glass-input-bg) p-4 text-left transition-colors focus-within:border-primary">
+              <PendingImagePreview
+                image={pendingImage}
+                error={imageError}
+                onRemove={() => setPendingImage(null)}
+                removeAria={t("aiIntake.removeImageAria")}
+              />
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    submit(input);
+                    submit(input, pendingFiles());
                   }
                 }}
                 onFocus={() => {
@@ -1073,11 +1246,23 @@ export function IntakeHero({
                 className="w-full resize-none bg-transparent text-sm text-on-surface placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-secondary focus:outline-none sm:text-base md:text-sm"
               />
               <div className="mt-3 flex items-center justify-between">
-                <ModelPicker value={model} onChange={setModel} />
+                <div className="flex items-center gap-2">
+                  <ModelPicker value={model} onChange={setModel} />
+                  <AttachImageButton
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={busy || imageCapReached}
+                    ariaLabel={t("aiIntake.attachImageAria")}
+                    title={
+                      imageCapReached
+                        ? t("aiIntake.imageCapReached", { max: String(MAX_IMAGES_PER_CONVERSATION) })
+                        : undefined
+                    }
+                  />
+                </div>
                 <motion.button
                   type="button"
-                  onClick={() => submit(input)}
-                  disabled={busy || !input.trim()}
+                  onClick={() => submit(input, pendingFiles())}
+                  disabled={busy || (!input.trim() && !pendingImage)}
                   aria-label={t("common.submit")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
@@ -1094,7 +1279,7 @@ export function IntakeHero({
                 <button
                   key={qa.labelKey}
                   type="button"
-                  onClick={() => submit(qa.prompt)}
+                  onClick={() => (qa.kind === "upload" ? fileInputRef.current?.click() : submit(qa.prompt))}
                   className="whitespace-nowrap rounded-full border border-border-subtle px-4 py-2 text-xs text-secondary transition-colors hover:border-primary hover:text-on-surface"
                 >
                   {t(qa.labelKey)}
@@ -1182,6 +1367,12 @@ export function IntakeHero({
                   transition={{ duration: 0.2, ease: easing.standard }}
                   className="rounded-xl border border-border-subtle bg-(--glass-input-bg) p-4 transition-colors focus-within:border-primary"
                 >
+                  <PendingImagePreview
+                    image={pendingImage}
+                    error={imageError}
+                    onRemove={() => setPendingImage(null)}
+                    removeAria={t("aiIntake.removeImageAria")}
+                  />
                   <textarea
                     ref={textareaRef}
                     value={input}
@@ -1189,7 +1380,7 @@ export function IntakeHero({
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        submit(input);
+                        submit(input, pendingFiles());
                       }
                     }}
                     placeholder={t("aiIntake.placeholder")}
@@ -1197,11 +1388,23 @@ export function IntakeHero({
                     className="w-full resize-none bg-transparent text-sm text-on-surface placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-secondary focus:outline-none sm:text-base md:text-sm"
                   />
                   <div className="mt-3 flex items-center justify-between">
-                    <ModelPicker value={model} onChange={setModel} />
+                    <div className="flex items-center gap-2">
+                      <ModelPicker value={model} onChange={setModel} />
+                      <AttachImageButton
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={busy || imageCapReached}
+                        ariaLabel={t("aiIntake.attachImageAria")}
+                        title={
+                          imageCapReached
+                            ? t("aiIntake.imageCapReached", { max: String(MAX_IMAGES_PER_CONVERSATION) })
+                            : undefined
+                        }
+                      />
+                    </div>
                     <motion.button
                       type="button"
-                      onClick={() => submit(input)}
-                      disabled={busy || !input.trim()}
+                      onClick={() => submit(input, pendingFiles())}
+                      disabled={busy || (!input.trim() && !pendingImage)}
                       aria-label={t("common.submit")}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
@@ -1217,6 +1420,14 @@ export function IntakeHero({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelected}
+        className="hidden"
+      />
 
       <AnimatePresence>
         {pickerOpen && <ReferencePickerModal onSelect={selectReference} onClose={() => setPickerOpen(false)} />}
