@@ -74,6 +74,132 @@ function RotatingHeadline({ variants }: { variants: string[] }) {
   );
 }
 
+// Auto-playing loop (no interaction needed) so a bio-link visitor sees the
+// whole "how this works" story play out in the first few seconds: the
+// connecting line travels toward the next numbered dot first, and only once
+// it actually arrives does that dot light up and its chat bubble pop in —
+// the dot/bubble are a *consequence* of the line reaching them, not
+// simultaneous with the line still animating.
+const TRAVEL_MS = 900;
+const HOLD_MS = 1600;
+
+function HowItWorksLoop({ steps }: { steps: string[] }) {
+  const [index, setIndex] = useState(0);
+  const [arrived, setArrived] = useState(true);
+  const [lap, setLap] = useState(0);
+  // Left-aligned for the first step, right-aligned for the last, so the
+  // bubble never clips past the track's own edges on narrow screens —
+  // only the middle step can safely center on its segment. The tail
+  // (below) is anchored independently, near whichever edge sits closest
+  // to that step's actual point on the bar, so it still reads as
+  // "pointing at" the right numbered dot even though the bubble itself
+  // is edge-aligned rather than centered on it.
+  const bubbleAlign = ["left-0", "left-1/2 -translate-x-1/2", "right-0"];
+  const tailAlign = ["left-4", "left-1/2 -translate-x-1/2", "right-4"];
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    function step(currentIndex: number, currentArrived: boolean) {
+      timeoutId = setTimeout(
+        () => {
+          if (!currentArrived) {
+            // Line just finished traveling — the dot/bubble light up now.
+            setArrived(true);
+            step(currentIndex, true);
+            return;
+          }
+          const next = (currentIndex + 1) % steps.length;
+          if (next === 0) {
+            // Loop restart: snap straight back to point 1, nothing to travel across.
+            setLap((l) => l + 1);
+            setIndex(0);
+            setArrived(true);
+            step(0, true);
+          } else {
+            setIndex(next);
+            setArrived(false);
+            step(next, false);
+          }
+        },
+        currentArrived ? HOLD_MS : TRAVEL_MS,
+      );
+    }
+
+    step(0, true);
+    return () => clearTimeout(timeoutId);
+  }, [steps.length]);
+
+  return (
+    <div className="mx-auto mt-4 w-full max-w-112">
+      <div className="relative h-10">
+        <AnimatePresence mode="wait">
+          {arrived && (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 6, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, scale: 0.92 }}
+              transition={{ duration: 0.25, ease: easing.standard }}
+              className={`absolute bottom-2 max-w-45 rounded-2xl border border-border-subtle bg-(--glass-input-bg) px-3 py-1.5 text-left text-[11px] leading-snug text-on-surface shadow-sm ${bubbleAlign[index]}`}
+            >
+              {steps[index]}
+              {/* Tail: a rotated square clipped to its bottom-right border,
+                  sitting half outside the bubble so it reads as a chat-bubble
+                  pointer aimed down at the dot below. */}
+              <span
+                className={`absolute -bottom-1.25 h-2.5 w-2.5 rotate-45 border-r border-b border-border-subtle bg-(--glass-input-bg) ${tailAlign[index]}`}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      {/* Classic stepper: numbered dot — connecting line — numbered dot —
+          connecting line — numbered dot, all one row (`1 ---- 2 ---- 3`).
+          The number itself sits on the line, not a separate row above/below. */}
+      <div className="flex items-center">
+        {steps.map((_, i) => {
+          const reached = i < index || (i === index && arrived);
+          return (
+            <div key={i} className="flex items-center" style={{ flex: i === steps.length - 1 ? "0 0 auto" : "1 1 0%" }}>
+              <span
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] transition-colors ${
+                  reached
+                    ? "border-primary bg-primary text-primary-contrast"
+                    : "border-border-subtle bg-(--glass-input-bg) text-secondary"
+                }`}
+              >
+                {i + 1}
+              </span>
+              {i < steps.length - 1 && (
+                <div className="mx-1.5 h-1 flex-1 overflow-hidden rounded-full bg-border-subtle">
+                  {index > i + 1 || (index === i + 1 && arrived) ? (
+                    <div className="h-full w-full rounded-full bg-primary" />
+                  ) : index === i + 1 && !arrived ? (
+                    <motion.div
+                      key={`${lap}-${i}`}
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: TRAVEL_MS / 1000, ease: "linear" }}
+                      className="relative h-full rounded-full bg-primary shadow-[0_0_10px_2px_var(--color-primary)]"
+                    >
+                      <motion.span
+                        className="absolute inset-0 rounded-full bg-primary blur-[3px]"
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </motion.div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ModelPicker({ value, onChange }: { value: ModelChoice; onChange: (v: ModelChoice) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -357,6 +483,15 @@ const CONTACT_METHODS = [
 ] as const;
 type ContactMethod = (typeof CONTACT_METHODS)[number]["key"];
 
+function isValidContact(method: ContactMethod, value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (method === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  if (method === "whatsapp") return /^\+?[0-9][0-9\s-]{7,14}$/.test(trimmed);
+  if (method === "instagram") return trimmed.startsWith("@") && trimmed.length > 1;
+  return true;
+}
+
 function ContactCard({
   prompt,
   onAnswer,
@@ -371,7 +506,9 @@ function ContactCard({
   const [name, setName] = useState("");
   const [method, setMethod] = useState<ContactMethod | null>(null);
   const [contact, setContact] = useState("");
-  const ready = name.trim().length > 0 && method !== null && contact.trim().length > 0;
+  const contactValid = method !== null && isValidContact(method, contact);
+  const showInvalidHint = method !== null && contact.trim().length > 0 && !contactValid;
+  const ready = name.trim().length > 0 && contactValid;
 
   function submit() {
     if (!ready || !method) return;
@@ -395,13 +532,13 @@ function ContactCard({
           className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
         />
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {CONTACT_METHODS.map((m) => (
             <button
               key={m.key}
               type="button"
               onClick={() => setMethod(m.key)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
+              className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                 method === m.key
                   ? "border-primary bg-primary/10 text-on-surface"
                   : "border-border-subtle text-secondary hover:border-primary hover:text-on-surface"
@@ -414,15 +551,20 @@ function ContactCard({
         </div>
 
         {method && (
-          <input
-            value={contact}
-            onChange={(e) => setContact(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submit();
-            }}
-            placeholder={t(`aiIntake.contactPlaceholders.${method}`)}
-            className="rounded-lg border border-border-subtle bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none focus:border-primary md:text-sm"
-          />
+          <div>
+            <input
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submit();
+              }}
+              placeholder={t(`aiIntake.contactPlaceholders.${method}`)}
+              className={`w-full rounded-lg border bg-transparent px-3 py-2 text-base text-on-surface placeholder:text-secondary focus:outline-none md:text-sm ${
+                showInvalidHint ? "border-error" : "border-border-subtle focus:border-primary"
+              }`}
+            />
+            {showInvalidHint && <p className="mt-1 text-xs text-error">{t(`aiIntake.contactInvalid.${method}`)}</p>}
+          </div>
         )}
       </div>
       <div className="mt-3 flex justify-end">
@@ -620,6 +762,13 @@ export function IntakeHero({
   const assistantTexts = messages.filter((m) => m.role === "assistant").map((m) => messageText(m.parts as MessagePart[]));
   const latestBrief = assistantTexts.map((text) => extractBrief(text).brief).find((b) => b !== null);
   const latestSummary = assistantTexts.map((text) => extractSummary(text).summary).find((s) => s !== null);
+  // Any past turn asking a checklist question means the client has entered
+  // feature-mapping — scanned across the whole transcript (not just the
+  // latest message) so the step stays lit once that phase starts, the same
+  // way latestSummary/latestBrief look at the full history above.
+  const hasFeatureChecklist = assistantTexts.some(
+    (text) => extractQuestion(extractSummary(extractBrief(text).clean).clean).question?.kind === "checklist",
+  );
 
   const lastMessage = messages[messages.length - 1];
   const lastQuestion =
@@ -640,13 +789,15 @@ export function IntakeHero({
 
   const stepIndex = latestBrief
     ? emailStatus === "sent"
-      ? 4
-      : 3
+      ? 5
+      : 4
     : latestSummary || activeQuestion?.kind === "contact"
-      ? 2
-      : messages.length > 2
-        ? 1
-        : 0;
+      ? 3
+      : hasFeatureChecklist
+        ? 2
+        : messages.length > 2
+          ? 1
+          : 0;
 
   useEffect(() => {
     const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
@@ -857,6 +1008,21 @@ export function IntakeHero({
 
   return (
     <>
+      <AnimatePresence>
+        {!closed && !started && (
+          <motion.div
+            key="how-it-works"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
+            transition={{ duration: durations.base, ease: easing.standard }}
+            className="mx-auto w-full max-w-3xl pb-4"
+          >
+            <HowItWorksLoop steps={tList("aiIntake.howItWorks.steps")} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {closed ? null : !started ? (
         <motion.div
@@ -923,7 +1089,7 @@ export function IntakeHero({
               </div>
             </div>
 
-            <div className="mt-4 flex flex-nowrap justify-center gap-2 overflow-x-auto">
+            <div className="mt-4 flex flex-nowrap justify-start gap-2 overflow-x-auto sm:justify-center">
               {quickActions.map((qa) => (
                 <button
                   key={qa.labelKey}

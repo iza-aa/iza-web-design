@@ -3,14 +3,14 @@ import { glassCardOpaque } from "@/lib/tokens";
 import { useIntakeVisibility } from "@/lib/intake-visibility";
 import { useLanguage } from "@/lib/language";
 
-const stepKeys = ["stepGuide.step1", "stepGuide.step2", "stepGuide.step3", "stepGuide.step4"];
+const stepKeys = ["stepGuide.step1", "stepGuide.step2", "stepGuide.step3", "stepGuide.step4", "stepGuide.step5"];
 
 export function IntakeStepGuide({ current }: { current: number }) {
   const { closeSession } = useIntakeVisibility();
   const { t } = useLanguage();
   const steps = stepKeys.map((key) => t(key, { name: OWNER_NAME }));
   return (
-    <div className={`overflow-hidden rounded-2xl lg:w-64 lg:shrink-0 ${glassCardOpaque}`}>
+    <div className={`max-h-[85vh] overflow-y-auto overflow-x-hidden rounded-2xl lg:w-64 lg:shrink-0 ${glassCardOpaque}`}>
       <div className="flex items-center border-b border-(--glass-border) px-4 py-3">
         <button
           type="button"

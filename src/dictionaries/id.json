@@ -35,6 +35,9 @@
     "checklistSelectedPrefix": "Fitur dipilih:",
     "checklistExtraPrefix": "Fitur tambahan:",
     "checklistNoneAnswer": "Tidak ada dari daftar ini.",
+    "howItWorks": {
+      "steps": ["Ceritakan proyek Anda", "Pilih persis yang Anda butuhkan", "Dapat estimasi harga, dikirim ke Iza"]
+    },
     "summaryTitle": "Rangkuman",
     "briefSentTo": "Brief dikirim ke {name}",
     "fields": {
@@ -46,7 +49,7 @@
       "timeline": "Linimasa",
       "description": "Deskripsi",
       "references": "Referensi",
-      "features": "Rincian fitur & harga",
+      "features": "Fitur yang dipilih",
       "priceEstimate": "Estimasi harga"
     },
     "contactMethods": {
@@ -58,6 +61,11 @@
       "email": "Alamat email Anda",
       "whatsapp": "Nomor WhatsApp Anda",
       "instagram": "Username Instagram Anda"
+    },
+    "contactInvalid": {
+      "email": "Masukkan alamat email yang valid (misal nama@contoh.com).",
+      "whatsapp": "Masukkan nomor telepon yang valid.",
+      "instagram": "Username Instagram harus diawali dengan @."
     },
     "confirmSuccess": "Diterima — tunggu balasan dalam beberapa hari.",
     "confirmError": "Gagal mengirim email otomatis — hubungi langsung dan sebutkan apa yang sudah Anda ceritakan di sini.",
@@ -72,8 +80,9 @@
     "title": "Sesi anda",
     "step1": "Ceritakan proyek anda",
     "step2": "Jawab beberapa pertanyaan singkat",
-    "step3": "Konfirmasi & bagikan kontak",
-    "step4": "Terkirim ke {name}",
+    "step3": "Pilih fitur & dapatkan estimasi",
+    "step4": "Konfirmasi & bagikan kontak",
+    "step5": "Terkirim ke {name}",
     "closeAria": "Tutup sesi"
   },
   "homepage": {

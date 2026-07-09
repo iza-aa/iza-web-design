@@ -35,6 +35,9 @@
     "checklistSelectedPrefix": "Selected features:",
     "checklistExtraPrefix": "Additional features:",
     "checklistNoneAnswer": "None from this list.",
+    "howItWorks": {
+      "steps": ["Describe your project", "Pick exactly what you need", "Get a priced estimate, sent to Iza"]
+    },
     "summaryTitle": "Summary",
     "briefSentTo": "Brief sent to {name}",
     "fields": {
@@ -46,7 +49,7 @@
       "timeline": "Timeline",
       "description": "Description",
       "references": "References",
-      "features": "Features & pricing breakdown",
+      "features": "Selected features",
       "priceEstimate": "Price estimate"
     },
     "contactMethods": {
@@ -58,6 +61,11 @@
       "email": "Your email address",
       "whatsapp": "Your WhatsApp number",
       "instagram": "Your Instagram handle"
+    },
+    "contactInvalid": {
+      "email": "Enter a valid email address (e.g. name@example.com).",
+      "whatsapp": "Enter a valid phone number.",
+      "instagram": "Instagram handle should start with @."
     },
     "confirmSuccess": "Got it — expect a reply within a couple of days.",
     "confirmError": "Couldn't email this automatically — reach out directly and mention what you shared here.",
@@ -72,8 +80,9 @@
     "title": "Your session",
     "step1": "Describe your project",
     "step2": "Answer a few quick questions",
-    "step3": "Confirm & share contact",
-    "step4": "Sent to {name}",
+    "step3": "Pick features & get an estimate",
+    "step4": "Confirm & share contact",
+    "step5": "Sent to {name}",
     "closeAria": "Close session"
   },
   "homepage": {
