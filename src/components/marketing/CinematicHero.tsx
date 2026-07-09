@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
@@ -99,9 +99,11 @@ const INJECTED_STYLES = `
       border: 1px solid rgba(255,255,255,0.03);
   }
 
-  /* Glow + diagonal sheen only appear on hover; leaving reverses the same
-     CSS transition, so the sheen sweeps back the way it came instead of
-     just snapping off. */
+  /* Glow + diagonal sheen appear on hover; leaving reverses the same CSS
+     transition, so the sheen sweeps back the way it came instead of just
+     snapping off. .is-active mirrors :hover for touch devices, which have
+     no real hover state — the button's onClick adds it and delays
+     navigation just long enough for this to actually be seen first. */
   .cinematic-glow-pill {
       position: relative;
       overflow: hidden;
@@ -116,7 +118,8 @@ const INJECTED_STYLES = `
       transition: transform 0.6s ease;
       pointer-events: none;
   }
-  .cinematic-glow-pill:hover {
+  .cinematic-glow-pill:hover,
+  .cinematic-glow-pill.is-active {
       transform: translateY(-2px);
       box-shadow:
           0 2px 4px rgba(0,0,0,0.4),
@@ -124,7 +127,8 @@ const INJECTED_STYLES = `
           0 0 44px 8px rgba(59,130,246,0.35),
           0 22px 44px -10px rgba(0,0,0,0.55);
   }
-  .cinematic-glow-pill:hover::before {
+  .cinematic-glow-pill:hover::before,
+  .cinematic-glow-pill.is-active::before {
       transform: translateX(120%);
   }
 
@@ -215,6 +219,7 @@ export function CinematicHero({
   const gsapCtxRef = useRef<gsap.Context | null>(null);
   const reduced = useReducedMotion();
   const router = useRouter();
+  const [primaryPressed, setPrimaryPressed] = useState(false);
 
   // Navigate away by killing ScrollTrigger's pin-spacer *before* Next.js
   // unmounts this page — don't rely on the effect cleanup's timing (see the
@@ -224,6 +229,15 @@ export function CinematicHero({
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     gsapCtxRef.current?.revert();
     router.push(href);
+  };
+
+  // Primary CTA's glow/sheen is a :hover effect, which touch devices never
+  // trigger on tap — show it via a manual `.is-active` class first, then
+  // navigate after it's actually had time to play.
+  const handlePrimaryTap = () => {
+    if (primaryPressed) return;
+    setPrimaryPressed(true);
+    setTimeout(() => navigate("/work"), 450);
   };
 
   // Mouse-driven 3D tilt on the phone mockup. No card underneath it
@@ -540,8 +554,8 @@ export function CinematicHero({
     <div className="flex flex-col sm:flex-row items-center gap-6">
       <button
         type="button"
-        onClick={() => navigate("/work")}
-        className="cinematic-glow-pill inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white"
+        onClick={handlePrimaryTap}
+        className={`cinematic-glow-pill inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white ${primaryPressed ? "is-active" : ""}`}
       >
         {ctaPrimaryLabel}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
