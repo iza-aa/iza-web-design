@@ -139,7 +139,7 @@ export function PlasmaLogoMark({ className = "", alt = "IZA UI" }: { className?:
 
     const start = performance.now();
     function draw(now: number) {
-      if (disposed) return;
+      if (disposed || !canvas) return;
       gl!.useProgram(program);
       gl!.bindBuffer(gl!.ARRAY_BUFFER, buf);
       gl!.vertexAttribPointer(posLoc, 2, gl!.FLOAT, false, 0, 0);

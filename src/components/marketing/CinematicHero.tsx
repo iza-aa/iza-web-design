@@ -384,16 +384,16 @@ export function CinematicHero({
   }, [chatPrompt, reduced]);
 
   const phoneMockup = (
-    <div className="relative w-[280px] h-[580px] rounded-[3rem] cinematic-iphone-bezel flex flex-col will-change-transform" style={{ transformStyle: "preserve-3d" }} ref={reduced ? undefined : mockupRef}>
-      <div className="absolute top-[120px] -left-[3px] w-[3px] h-[25px] cinematic-hardware-btn rounded-l-md z-0" aria-hidden="true" />
-      <div className="absolute top-[160px] -left-[3px] w-[3px] h-[45px] cinematic-hardware-btn rounded-l-md z-0" aria-hidden="true" />
-      <div className="absolute top-[220px] -left-[3px] w-[3px] h-[45px] cinematic-hardware-btn rounded-l-md z-0" aria-hidden="true" />
-      <div className="absolute top-[170px] -right-[3px] w-[3px] h-[70px] cinematic-hardware-btn rounded-r-md z-0 scale-x-[-1]" aria-hidden="true" />
+    <div className="relative w-70 h-145 rounded-[3rem] cinematic-iphone-bezel flex flex-col will-change-transform" style={{ transformStyle: "preserve-3d" }} ref={reduced ? undefined : mockupRef}>
+      <div className="absolute top-30 -left-0.75 w-0.75 h-6.25 cinematic-hardware-btn rounded-l-md z-0" aria-hidden="true" />
+      <div className="absolute top-40 -left-0.75 w-0.75 h-11.25 cinematic-hardware-btn rounded-l-md z-0" aria-hidden="true" />
+      <div className="absolute top-55 -left-0.75 w-0.75 h-11.25 cinematic-hardware-btn rounded-l-md z-0" aria-hidden="true" />
+      <div className="absolute top-42.5 -right-0.75 w-0.75 h-17.5 cinematic-hardware-btn rounded-r-md z-0 scale-x-[-1]" aria-hidden="true" />
 
-      <div className="absolute inset-[7px] bg-[#050914] rounded-[2.5rem] overflow-hidden shadow-[inset_0_0_15px_rgba(0,0,0,1)] text-white z-10">
+      <div className="absolute inset-1.75 bg-[#050914] rounded-[2.5rem] overflow-hidden shadow-[inset_0_0_15px_rgba(0,0,0,1)] text-white z-10">
         <div className="absolute inset-0 cinematic-screen-glare z-40 pointer-events-none" aria-hidden="true" />
 
-        <div className="absolute top-[5px] left-1/2 -translate-x-1/2 w-[100px] h-[28px] bg-black rounded-full z-50 flex items-center justify-end px-3 shadow-[inset_0_-1px_2px_rgba(255,255,255,0.1)]">
+        <div className="absolute top-1.25 left-1/2 -translate-x-1/2 w-25 h-7 bg-black rounded-full z-50 flex items-center justify-end px-3 shadow-[inset_0_-1px_2px_rgba(255,255,255,0.1)]">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse" />
         </div>
 
@@ -424,7 +424,7 @@ export function CinematicHero({
               <div className="chat-typed-row absolute inset-x-0 top-0 px-3 pt-2 flex items-center gap-2">
                 <span className="flex-1 min-w-0 flex items-center">
                   <span className="chat-typed-text text-[11px] text-neutral-200 truncate">{reduced ? chatPrompt : ""}</span>
-                  <span className="inline-block w-[2px] h-3 bg-blue-400 ml-0.5 shrink-0" aria-hidden="true" />
+                  <span className="inline-block w-0.5 h-3 bg-blue-400 ml-0.5 shrink-0" aria-hidden="true" />
                 </span>
 
                 <div className="chat-generate-btn cinematic-send-btn relative w-7 h-7 rounded-full shrink-0">
@@ -520,7 +520,7 @@ export function CinematicHero({
             </div>
           </div>
 
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[4px] bg-white/20 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-30 h-[4px] bg-white/20 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
         </div>
       </div>
     </div>
@@ -528,7 +528,7 @@ export function CinematicHero({
 
   const badges = (
     <>
-      <div className="floating-badge absolute flex top-6 lg:top-12 left-[-15px] lg:left-[-80px] cinematic-floating-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
+      <div className="floating-badge absolute flex top-6 lg:top-12 -left-3.75 lg:-left-20 cinematic-floating-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
         <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-b from-blue-500/20 to-blue-900/10 flex items-center justify-center border border-blue-400/30 shadow-inner">
           <Image src={callMeHandEmoji} alt="" width={20} height={20} className="h-4 w-4 lg:h-5 lg:w-5 drop-shadow-lg" />
         </div>
@@ -538,7 +538,7 @@ export function CinematicHero({
         </div>
       </div>
 
-      <div className="floating-badge absolute flex bottom-12 lg:bottom-20 right-[-15px] lg:right-[-80px] cinematic-floating-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
+      <div className="floating-badge absolute flex bottom-12 lg:bottom-20 -right-3.75 lg:-right-20 cinematic-floating-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
         <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-b from-indigo-500/20 to-indigo-900/10 flex items-center justify-center border border-indigo-400/30 shadow-inner">
           <Image src={beamingFaceEmoji} alt="" width={20} height={20} className="h-4 w-4 lg:h-5 lg:w-5 drop-shadow-lg" />
         </div>
@@ -591,7 +591,7 @@ export function CinematicHero({
             <p className="text-secondary text-sm md:text-base leading-relaxed mx-auto lg:mx-0 max-w-[24rem]">{cardDescription}</p>
           </div>
 
-          <div className="relative w-full h-[420px] flex items-center justify-center" style={{ perspective: "1000px" }}>
+          <div className="relative w-full h-105 flex items-center justify-center" style={{ perspective: "1000px" }}>
             <div className="relative w-full h-full flex items-center justify-center transform scale-[0.7]">
               {phoneMockup}
               {badges}
@@ -659,7 +659,7 @@ export function CinematicHero({
             <PlasmaLogoMark className="w-56 md:w-80 lg:w-96" alt={brandName} />
           </div>
 
-          <div className="mockup-scroll-wrapper order-2 lg:order-2 relative w-full h-[380px] lg:h-[600px] flex items-center justify-center z-10" style={{ perspective: "1000px" }}>
+          <div className="mockup-scroll-wrapper order-2 lg:order-2 relative w-full h-95 lg:h-150 flex items-center justify-center z-10" style={{ perspective: "1000px" }}>
             <div className="relative w-full h-full flex items-center justify-center transform scale-[0.65] md:scale-85 lg:scale-100">
               {phoneMockup}
               {badges}
