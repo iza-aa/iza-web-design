@@ -352,6 +352,8 @@ export function CinematicHero({
         .to({}, { duration: 1.5 });
     }, containerRef);
 
+    gsapCtxRef.current = ctx;
+
     return () => {
       // `ctx.revert()` un-pins/un-wraps everything this context created, but
       // on a client-side route change (Next.js App Router unmounts this page
@@ -538,7 +540,7 @@ export function CinematicHero({
     <div className="flex flex-col sm:flex-row items-center gap-6">
       <button
         type="button"
-        onClick={() => router.push("/work")}
+        onClick={() => navigate("/work")}
         className="cinematic-glow-pill inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white"
       >
         {ctaPrimaryLabel}
@@ -548,7 +550,7 @@ export function CinematicHero({
       </button>
       <button
         type="button"
-        onClick={() => router.push("/work#gallery")}
+        onClick={() => navigate("/work#gallery")}
         className="text-sm font-medium text-secondary transition-colors hover:text-on-surface"
       >
         {ctaSecondaryLabel}
