@@ -2,37 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-/**
- * Ambient backdrop — retro-CRT / halftone-dot shader, replacing the
- * pointer-field particle grid (see docs/roadmap.md Phase 3 for the prior
- * version). Full-viewport fragment shader instead of a per-frame JS particle
- * loop, so it's actually cheaper than what it replaced (no O(n^2) line-connect
- * pass). Three.js is still loaded dynamically so pages that never mount this
- * component don't pay for it.
- *
- * Deliberately theme-independent (always the same rainbow dot palette,
- * alpha-blended at low opacity) rather than tied to --color-primary/secondary
- * — the reference is a fixed CRT-static look, not a brand recolor, and low
- * opacity keeps it ambient instead of fighting page content in light mode.
- *
- * Glyph hover, brush + stepped-fade version (2026-07-05, fifth iteration):
- * back to a paint-on-move brush trail (a ping-pong feedback buffer — see
- * TRAIL_FRAGMENT_SHADER) with an organic, noise-jittered width so the stroke
- * itself reads as a brush, not a circle. Painted cells morph into black
- * ASCII glyphs (ring/cross/plus/square); the trail's continuous decay is
- * quantized into 3 discrete steps (`floor(trail * 3.0) / 3.0`) before it
- * drives color/shape, so a stroke fades out in 3 visible layers instead of
- * one smooth continuous fade.
- * Earlier iterations, in order: a separate monochrome overlay (looked
- * disconnected from the retro effect); a same-grid instantaneous single-
- * radius spotlight; the same brush trail as here but with a smooth
- * (non-stepped) fade; a static circular ripple with 3 rings fading IN on
- * hover-enter (rejected — needed to stay brush-shaped and fade OUT).
- */
-
-// Coordinates with site-loader.ts's blocking init script — see that file's
-// comment for why the loader needs to know about this component's async
-// WebGL setup instead of just relying on the browser's `load` event.
 function markAmbientReady() {
   (window as Window & { __ambientState?: string }).__ambientState = "ready";
   window.dispatchEvent(new Event("ambient-canvas-ready"));

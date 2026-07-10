@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { componentDocs, componentDocGroups } from "@/lib/component-docs";
 import { useLanguage } from "@/lib/language";
-import { glassCard } from "@/lib/tokens";
+import { glassCardStrong } from "@/lib/tokens";
 
 const topLinks = [
   { href: "/docs", labelKey: "docs.nav.introduction" },
@@ -114,7 +114,7 @@ export function DocsSidebar() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className={`fixed inset-y-0 left-0 z-70 flex w-2/3 flex-col gap-6 overflow-y-auto p-6 pt-20 sm:pt-24 lg:hidden ${glassCard}`}
+            className={`fixed inset-y-0 left-0 z-70 flex w-2/3 flex-col gap-6 overflow-y-auto p-6 pt-20 sm:pt-24 lg:hidden ${glassCardStrong}`}
           >
             {links}
           </motion.div>

@@ -283,6 +283,55 @@
         "props": {
           "className": "Overrides the wrapper div's classes — pass an `absolute inset-0` variant to embed it inside a bounded container instead of the full viewport."
         }
+      },
+      "plasmaLogoMark": {
+        "name": "Plasma Logo Mark",
+        "description": "A fluid plasma fragment shader (raw WebGL, no `three`) CSS-masked to the silhouette of the site's logo image — domain-warped FBM noise flowing through a cyan/orange/purple/blue palette. A plain `<Image>` of the same logo renders underneath at all times as the SSR/no-WebGL fallback; once the canvas mounts it's masked to the identical logo shape and fully occludes the image beneath it. Swaps between light/dark logo assets based on the current theme.",
+        "a11y": "The visible fallback `<Image>` carries the real `alt` text; the WebGL canvas layered on top is `aria-hidden` and purely decorative.",
+        "props": {
+          "className": "Overrides the wrapper div's classes. The wrapper keeps a fixed 94:48 aspect ratio.",
+          "alt": "Alt text passed to the underlying logo `<Image>`."
+        }
+      },
+      "phoneMockup": {
+        "name": "Phone Mockup",
+        "description": "A skeuomorphic iPhone mockup with a looping chat demo: a collapsed \"Ask anything…\" pill expands into a card, types out `chatPrompt` (GSAP TextPlugin), lights up and bounces its send button, then a marker travels an SVG connector path (GSAP MotionPathPlugin) down into a notification stack that staggers in — holds, fades back to the resting state, then loops. Also has a mouse-driven 3D tilt scoped to the mockup's own bounding box. Theme-independent by design (the phone screen is always dark, regardless of the page's light/dark theme), same rationale as Ambient Canvas.",
+        "a11y": "Purely decorative — the whole mockup renders as an `aria-hidden` wrapper. Respects `prefers-reduced-motion`: renders the resting frame with no timeline and no tilt.",
+        "props": {
+          "eyebrow": "Small uppercase label above the title, top-left of the screen.",
+          "title": "Large bold heading below the eyebrow.",
+          "chatPlaceholder": "Text shown in the collapsed chat pill before it expands.",
+          "chatPrompt": "Text the chat card types out character-by-character each loop.",
+          "notifications": "Array of `{ icon, title, time?, accent? }` — up to 4 read best. Omit `time` for a bouncing-dots \"pending\" indicator instead of a timestamp. `accent` picks the icon chip's color (`blue`/`sky`/`indigo`/`emerald`); cycles through all four by index when omitted.",
+          "badge1": "Optional floating badge `{ icon, title, subtitle }` anchored top-left of the mockup.",
+          "badge2": "Optional floating badge `{ icon, title, subtitle }` anchored bottom-right of the mockup.",
+          "className": "Overrides the outer wrapper div's classes."
+        }
+      },
+      "glowButton": {
+        "name": "Glow Button",
+        "description": "A CTA pill button with a diagonal sheen that sweeps across on hover, plus a soft blue glow and lift. Touch devices never trigger `:hover`, so tapping instead adds a manual `.is-active` class (mirroring the hover state) immediately, then calls `onClick` about 450ms later — just long enough for the sheen to actually be seen before whatever the click does (e.g. navigation) unmounts the button.",
+        "a11y": "Renders a real `<button>` (or a `next/link` `<a>` when `href` is passed) — standard keyboard/focus support, nothing about the sheen animation is required to operate it.",
+        "props": {
+          "children": "Button label content.",
+          "onClick": "Called ~450ms after a click/tap, once the active-state sheen has had time to play.",
+          "href": "When passed, renders as a `next/link` instead of a `<button>`.",
+          "icon": "Trailing icon — defaults to a small arrow; pass `null` to omit it entirely.",
+          "className": "Appended to the button's classes."
+        }
+      },
+      "gradientHeading": {
+        "name": "Gradient Heading",
+        "description": "A large heading treatment in two variants: `matte` (solid `--color-on-surface` with a soft layered text-shadow) and `silver` (the same color gradient-clipped into the text itself, `background-clip: text`, plus a matching layered `drop-shadow` filter since a clipped-text element can't use `text-shadow`). Reads `--color-on-surface`, so it retints automatically under the `.light` theme class — no separate light/dark variant needed. Plays a one-shot entrance on mount by default — `matte` fades/rises up out of a blur, `silver` wipes in via an animated `clip-path` — matching the two-line tagline reveal on the homepage. `delay` lets a second heading's reveal overlap the first's, for that same cascading two-line effect.",
+        "a11y": "Renders as a real heading element (`h1`/`h2`/`h3` via the `as` prop) with its actual text content — the gradient/shadow treatment is purely visual, nothing is hidden from or unavailable to assistive tech. Respects `prefers-reduced-motion`: renders straight into its resting state, no reveal animation.",
+        "props": {
+          "children": "Heading text content.",
+          "as": "Which heading element to render.",
+          "variant": "`matte` for a solid color with soft shadow, `silver` for gradient-clipped text with a layered drop-shadow.",
+          "animate": "Set `false` to skip the entrance animation and render straight into the resting state.",
+          "delay": "Seconds to delay the entrance animation's start — use it to stagger a second heading's reveal after the first.",
+          "className": "Appended to the heading's classes — this is where font-size/weight/tracking belong, since the component itself only sets the color/shadow treatment."
+        }
       }
     }
   }

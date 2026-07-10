@@ -17,10 +17,10 @@ export function RepoBadge() {
       target="_blank"
       rel="noreferrer"
       aria-label="iza-ui on GitHub"
-      className={`fixed bottom-6 right-4 z-40 flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-medium text-secondary transition-colors hover:text-on-surface sm:right-6 ${glassCard}`}
+      className={`fixed bottom-6 right-4 z-40 flex items-center gap-2 rounded-full px-2 py-2 text-xs font-medium text-secondary transition-colors hover:text-on-surface sm:right-6 ${glassCard}`}
     >
       <GitHubIcon />
-      iza-ui
+
     </a>
   );
 }

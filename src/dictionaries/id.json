@@ -283,6 +283,55 @@
         "props": {
           "className": "Override class div wrapper — kasih varian `absolute inset-0` buat embed di container terbatas, bukan full viewport."
         }
+      },
+      "plasmaLogoMark": {
+        "name": "Plasma Logo Mark",
+        "description": "Fragment shader plasma cair (raw WebGL, gak pakai `three`) yang di-mask CSS ke siluet logo situs — noise FBM domain-warped yang ngalir lewat palet cyan/orange/purple/blue. `<Image>` biasa dari logo yang sama tetap render di bawahnya sebagai fallback SSR/no-WebGL; begitu canvas-nya mount, dia di-mask ke bentuk logo yang identik dan nutupin total gambar di bawahnya. Ganti-ganti aset logo terang/gelap sesuai theme yang lagi aktif.",
+        "a11y": "`<Image>` fallback yang keliatan bawa `alt` text asli; canvas WebGL yang numpuk di atasnya `aria-hidden` dan murni dekoratif.",
+        "props": {
+          "className": "Override class div wrapper. Wrapper-nya pertahanin aspect ratio tetap 94:48.",
+          "alt": "Alt text yang dioper ke `<Image>` logo di bawahnya."
+        }
+      },
+      "phoneMockup": {
+        "name": "Phone Mockup",
+        "description": "Mockup iPhone skeuomorphic dengan demo chat yang looping: pill \"Ask anything…\" yang ke-collapse expand jadi card, ngetik `chatPrompt` (GSAP TextPlugin), tombol send-nya nyala + bounce, terus marker jalan di path SVG connector (GSAP MotionPathPlugin) turun ke stack notifikasi yang muncul stagger — hold sebentar, fade balik ke posisi awal, terus loop lagi. Ada juga tilt 3D yang ngikutin mouse, di-scope ke bounding box mockup-nya sendiri. Theme-independent by design (layar HP-nya selalu gelap, gak peduli theme halaman lagi terang/gelap), alasan sama kayak Ambient Canvas.",
+        "a11y": "Murni dekoratif — seluruh mockup di-render dalam wrapper `aria-hidden`. Menghormati `prefers-reduced-motion`: render frame diam, gak ada timeline, gak ada tilt.",
+        "props": {
+          "eyebrow": "Label kecil uppercase di atas title, pojok kiri atas layar.",
+          "title": "Heading gede bold di bawah eyebrow.",
+          "chatPlaceholder": "Teks yang keliatan di pill chat yang masih collapsed sebelum expand.",
+          "chatPrompt": "Teks yang diketik huruf-per-huruf sama card chat-nya tiap loop.",
+          "notifications": "Array `{ icon, title, time?, accent? }` — paling enak sampe 4 item. Skip `time` buat dapet indikator dots-mantul \"pending\" ganti timestamp. `accent` milih warna chip icon-nya (`blue`/`sky`/`indigo`/`emerald`); kalau di-skip, cycling otomatis ke-4 warna berdasarkan index.",
+          "badge1": "Badge floating optional `{ icon, title, subtitle }`, nempel pojok kiri atas mockup.",
+          "badge2": "Badge floating optional `{ icon, title, subtitle }`, nempel pojok kanan bawah mockup.",
+          "className": "Override class div wrapper terluar."
+        }
+      },
+      "glowButton": {
+        "name": "Glow Button",
+        "description": "Tombol CTA bentuk pill dengan sheen diagonal yang nyapu pas di-hover, plus glow biru lembut + kesan keangkat. Device touch gak pernah trigger `:hover`, jadi pas di-tap, class `.is-active` manual langsung nyala (niruin state hover), baru `onClick` dipanggil sekitar 450ms kemudian — cukup lama biar sheen-nya beneran keliatan dulu sebelum apapun yang di-klik (misal navigasi) nge-unmount tombolnya.",
+        "a11y": "Render `<button>` asli (atau `<a>` dari `next/link` kalau `href` dioper) — dukungan keyboard/focus standar, animasi sheen-nya gak wajib buat make tombolnya.",
+        "props": {
+          "children": "Konten label tombol.",
+          "onClick": "Dipanggil ~450ms setelah klik/tap, setelah sheen active-state sempet main dulu.",
+          "href": "Kalau dioper, render sebagai `next/link` ganti `<button>`.",
+          "icon": "Icon trailing — default-nya panah kecil; oper `null` buat skip total.",
+          "className": "Ditambahin ke class tombolnya."
+        }
+      },
+      "gradientHeading": {
+        "name": "Gradient Heading",
+        "description": "Treatment heading gede dalam 2 varian: `matte` (warna solid `--color-on-surface` plus text-shadow berlapis lembut) dan `silver` (warna sama tapi di-gradient-clip langsung ke teksnya, `background-clip: text`, plus `drop-shadow` filter berlapis yang matching — soalnya elemen teks yang di-clip gak bisa pakai `text-shadow` biasa). Baca `--color-on-surface`, jadi otomatis ganti warna pas theme `.light` aktif — gak butuh varian light/dark terpisah. Default-nya main entrance animation sekali pas mount — `matte` fade + naik dari blur, `silver` wipe-in lewat `clip-path` yang dianimasi — niruin reveal tagline dua baris di homepage. `delay` biar reveal heading kedua overlap sama yang pertama, buat efek cascading dua baris yang sama.",
+        "a11y": "Render sebagai elemen heading asli (`h1`/`h2`/`h3` lewat prop `as`) dengan teks konten beneran — treatment gradient/shadow-nya murni visual, gak ada yang disembunyiin atau gak keakses dari assistive tech. Menghormati `prefers-reduced-motion`: langsung render di posisi akhir, tanpa animasi reveal.",
+        "props": {
+          "children": "Konten teks heading.",
+          "as": "Elemen heading mana yang di-render.",
+          "variant": "`matte` buat warna solid + shadow lembut, `silver` buat teks gradient-clip + drop-shadow berlapis.",
+          "animate": "Set `false` buat skip entrance animation, langsung render di posisi akhir.",
+          "delay": "Detik penundaan sebelum entrance animation mulai — pakai buat stagger reveal heading kedua setelah yang pertama.",
+          "className": "Ditambahin ke class heading-nya — di sinilah tempat font-size/weight/tracking, soalnya component-nya sendiri cuma ngatur treatment warna/shadow."
+        }
       }
     }
   }

@@ -4,23 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
-/**
- * DockItem — `dock-item` token from hyliox-waitlist-card.md: a single
- * floating-dock tile with a hover tooltip and an active-state dot indicator.
- *
- * `boost` (0–1) drives the macOS-dock-style magnification — DockNav computes
- * it per item based on distance from whichever item is currently hovered
- * (1 = the hovered item itself, falling off for neighbors, 0 = unaffected),
- * so this component itself has no hover-state opinion beyond reporting
- * hover start/end back up.
- */
-// Half the icon's own scale-driven overflow (h-12 = 48px box, scale goes up
-// to 1 + boost * 0.4) — given to each item as its own margin so it pushes
-// its neighbors away by exactly as much as it's about to bleed past its box.
-// Real layout margin instead of the parent's `gap`: Framer Motion doesn't
-// reliably animate a shared `gap` value, so a flat container-level number
-// silently no-ops instead of creating room, and the magnified icon just
-// overlaps whatever's next to it.
 const MARGIN_PER_BOOST = 9.6;
 
 export function DockItem({
