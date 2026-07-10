@@ -1,7 +1,7 @@
 "use client";
 
 import Image, { type StaticImageData } from "next/image";
-import { motion } from "framer-motion";
+import { motion, useDragControls, type PanInfo } from "framer-motion";
 import { easing } from "@/lib/motion";
 import { useLanguage } from "@/lib/language";
 import emailIcon from "@/assets/logo/email.png";
@@ -35,6 +35,11 @@ const CONTACT_ROWS = [
 
 const LOCATION_URL = "https://share.google/sS9eTwrwTcFrEoO5w";
 
+// Swipe-down-to-dismiss on the sheet itself: past either threshold on
+// release, treat it as a close gesture rather than snapping back.
+const DRAG_CLOSE_OFFSET = 120;
+const DRAG_CLOSE_VELOCITY = 500;
+
 function PinIcon() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
@@ -46,6 +51,13 @@ function PinIcon() {
 
 export function ContactModal({ onClose }: { onClose: () => void }) {
   const { t } = useLanguage();
+  const dragControls = useDragControls();
+
+  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    if (info.offset.y > DRAG_CLOSE_OFFSET || info.velocity.y > DRAG_CLOSE_VELOCITY) {
+      onClose();
+    }
+  }
 
   return (
     <motion.div
@@ -67,18 +79,27 @@ export function ContactModal({ onClose }: { onClose: () => void }) {
         }}
         transition={{ duration: 0.35, ease: easing.standard }}
         onClick={(e) => e.stopPropagation()}
+        drag="y"
+        dragListener={false}
+        dragControls={dragControls}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        onDragEnd={handleDragEnd}
         className="relative w-full max-w-112 overflow-hidden rounded-t-3xl border border-border-subtle bg-surface shadow-[0_20px_40px_rgba(0,0,0,0.35)]"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={t("contact.closeAria")}
-          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-(--glass-input-bg) text-on-surface transition-colors hover:bg-(--glass-bg)"
+          className="absolute right-4 top-4 z-10 hidden h-8 w-8 items-center justify-center rounded-full bg-(--glass-input-bg) text-on-surface transition-colors hover:bg-(--glass-bg) sm:flex"
         >
           &times;
         </button>
 
-        <div className="flex flex-col items-center pt-3">
+        <div
+          onPointerDown={(e) => dragControls.start(e)}
+          className="flex touch-none flex-col items-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+        >
           <span className="h-1.5 w-10 rounded-full bg-border-subtle" aria-hidden />
         </div>
 
