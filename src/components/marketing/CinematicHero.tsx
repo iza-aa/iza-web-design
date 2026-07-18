@@ -2,6 +2,7 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
+import Lenis from "lenis";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
@@ -48,13 +49,33 @@ const INJECTED_STYLES = `
       background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
   }
 
+  /*
+   * Flat two-tone stage, not the shared --color-surface token: dark mode
+   * is pure black (not the charcoal --color-surface value) so the grid
+   * lines and curtain blinds below read as intentional, high-contrast
+   * marks against it rather than a faint tint on gray. Light mode's
+   * --color-surface is already effectively white, kept as plain white
+   * here too for the same flat-black/flat-white symmetry. (2026-07-19)
+   */
+  .cinematic-stage-bg {
+      background-color: #000000;
+  }
+  .light .cinematic-stage-bg {
+      background-color: #ffffff;
+  }
+
   .cinematic-bg-grid {
       background-size: 60px 60px;
       background-image:
-          linear-gradient(to right, color-mix(in srgb, var(--color-on-surface) 5%, transparent) 1px, transparent 1px),
-          linear-gradient(to bottom, color-mix(in srgb, var(--color-on-surface) 5%, transparent) 1px, transparent 1px);
+          linear-gradient(to right, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
       mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
       -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+  }
+  .light .cinematic-bg-grid {
+      background-image:
+          linear-gradient(to right, rgba(0, 0, 0, 0.16) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 1px, transparent 1px);
   }
 
   .cinematic-text-matte {
@@ -83,6 +104,33 @@ const INJECTED_STYLES = `
           0 40px 80px -15px rgba(0,0,0,0.9),
           0 15px 25px -5px rgba(0,0,0,0.7);
       transform-style: preserve-3d;
+  }
+
+  /*
+   * Black-on-black would hide the closing transition entirely now that the
+   * stage background is pure black in dark mode — gray keeps the blinds
+   * visibly sweeping across it. Light mode's white stage still gives black
+   * blinds plenty of contrast, so those stay unchanged. (2026-07-19)
+   */
+  .curtain-blind {
+      background-color: #000000;
+  }
+  .light .curtain-blind {
+      background-color: #ffffff;
+  }
+
+  /*
+   * Primary CTA pill: white bg / black text in dark mode (explicit
+   * request, 2026-07-19), unchanged black bg / white text in light mode
+   * (the original look, still reads fine against light's white stage).
+   */
+  .cinematic-primary-cta {
+      background-color: #ffffff;
+      color: #000000;
+  }
+  .light .cinematic-primary-cta {
+      background-color: #000000;
+      color: #ffffff;
   }
 
   .cinematic-hardware-btn {
@@ -241,6 +289,10 @@ export function CinematicHero({
   const mockupRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>(0);
   const ctaAutoPlayedRef = useRef(false);
+  // Drives the 3D logo's rotation directly — updated imperatively from the
+  // pinned timeline's own scroll progress (see the ScrollTrigger below), no
+  // React re-render on either side. AsciiIzaLogo3D reads it every rAF frame.
+  const logoSpinProgressRef = useRef(0);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
   const reduced = useReducedMotion();
   const router = useRouter();
@@ -334,6 +386,19 @@ export function CinematicHero({
   useIsomorphicLayoutEffect(() => {
     if (reduced) return;
 
+    // A hard, fast flick of the wheel/trackpad can jump the scrub-driven
+    // curtain timeline through several seconds of animation in one tick —
+    // scrub's own easing only smooths how quickly the timeline *catches up*
+    // to scroll position, it doesn't cap how far a single scroll event can
+    // move that position in the first place. Lenis intercepts the raw wheel
+    // input and turns it into a capped-velocity, eased scroll instead, so
+    // even a hard flick can't outrun what the animation can render cleanly.
+    const lenis = new Lenis({ duration: 1.4, smoothWheel: true, wheelMultiplier: 0.85 });
+    lenis.on("scroll", ScrollTrigger.update);
+    const lenisTick = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(lenisTick);
+    gsap.ticker.lagSmoothing(0);
+
     const physicsRafs = new Set<number>();
     const physicsTimers = new Set<number>();
     let matterCleanup: (() => void) | null = null;
@@ -387,24 +452,62 @@ export function CinematicHero({
       // mark instead.
       const streamXShift = -window.innerWidth * 0.09;
       const streamEntryX = 34 + streamXShift;
-      const streamWaypoints = [
-        // Spawns directly above kf1, not off to the right — same x as kf1,
-        // just far off-screen above it — so the card visibly falls in from
-        // the top into its resting column instead of sliding in from the
-        // side.
-        { autoAlpha: 0, x: streamEntryX, y: -720, scale: 0.72, rotation: 0 },
-        { autoAlpha: 1, x: streamEntryX, y: -170, scale: 0.95, rotation: 0 },
-        { autoAlpha: 1, x: -48 + streamXShift, y: 90, scale: 1, rotation: 0 },
-        { autoAlpha: 1, x: 24 + streamXShift, y: 280, scale: 0.92, rotation: 0 },
-        { autoAlpha: 0, x: window.innerWidth * 0.48, y: window.innerHeight * 0.72, scale: 0.76, rotation: 0 },
+      // Control points, not the actual path — with straight lines between
+      // these the card ran dead straight for a whole leg and then snapped
+      // direction at each one, reading as "straight, then a sudden turn".
+      // Catmull-Rom-sampling through them below bends the whole path into
+      // one continuous curve that still passes through every point.
+      const streamControlPoints = [
+        // Spawns almost directly above kf1 (off-screen above it, not off to
+        // the side) — but not *exactly* the same x. A Catmull-Rom tangent
+        // is estimated from a point's neighbors, and with kf0 and kf1
+        // sharing one x, that tangent comes out perfectly vertical: the
+        // curve had zero horizontal velocity to inherit at t=0, so it fell
+        // dead straight down before bending, no matter how the boundary
+        // was handled. Offsetting this one point a little — still hidden
+        // (autoAlpha 0) for most of this leg, and tiny next to the ~550px
+        // drop — gives the spline a real starting direction to curve from
+        // immediately, without reading as "slides in from the side".
+        { autoAlpha: 0, x: streamEntryX + 60, y: -720, scale: 0.72 },
+        { autoAlpha: 1, x: streamEntryX, y: -170, scale: 0.95 },
+        { autoAlpha: 1, x: -48 + streamXShift, y: 90, scale: 1 },
+        { autoAlpha: 1, x: 24 + streamXShift, y: 280, scale: 0.92 },
+        { autoAlpha: 0, x: window.innerWidth * 0.48, y: window.innerHeight * 0.72, scale: 0.76 },
       ];
-      const streamKeyframes = streamWaypoints.map((point, i) => {
-        // Keyframe 0 is the hidden reset jump back to the start of the loop
-        // (autoAlpha 0 the whole time) — kept near-instant on purpose, not
-        // part of the constant-speed path itself.
-        if (i === 0) return { ...point, duration: 0.01 };
-        const prev = streamWaypoints[i - 1];
-        return { ...point, duration: Math.hypot(point.x - prev.x, point.y - prev.y) / streamSpeedPxPerSec };
+      const catmullRom = (p0: number, p1: number, p2: number, p3: number, t: number) => {
+        const t2 = t * t;
+        const t3 = t2 * t;
+        return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+      };
+      const STREAM_SAMPLES_PER_LEG = 6;
+      const first = streamControlPoints[0];
+      const streamCurvePoints: { x: number; y: number; autoAlpha: number; scale: number }[] = [
+        { x: first.x, y: first.y, autoAlpha: first.autoAlpha, scale: first.scale },
+      ];
+      for (let i = 0; i < streamControlPoints.length - 1; i++) {
+        const p0 = streamControlPoints[Math.max(0, i - 1)];
+        const p1 = streamControlPoints[i];
+        const p2 = streamControlPoints[i + 1];
+        const p3 = streamControlPoints[Math.min(streamControlPoints.length - 1, i + 2)];
+        for (let s = 1; s <= STREAM_SAMPLES_PER_LEG; s++) {
+          const t = s / STREAM_SAMPLES_PER_LEG;
+          streamCurvePoints.push({
+            x: catmullRom(p0.x, p1.x, p2.x, p3.x, t),
+            y: catmullRom(p0.y, p1.y, p2.y, p3.y, t),
+            autoAlpha: p1.autoAlpha + (p2.autoAlpha - p1.autoAlpha) * t,
+            scale: p1.scale + (p2.scale - p1.scale) * t,
+          });
+        }
+      }
+      // Duration per sample is still distance/speed exactly like before —
+      // just applied to many short curved sub-segments now instead of 4
+      // long straight ones, so the constant-speed guarantee holds along the
+      // curve too, not only within each original leg.
+      const streamKeyframes = streamCurvePoints.map((point, i) => {
+        if (i === 0) return { ...point, rotation: 0, duration: 0.01 };
+        const prev = streamCurvePoints[i - 1];
+        const duration = Math.hypot(point.x - prev.x, point.y - prev.y) / streamSpeedPxPerSec;
+        return { ...point, rotation: 0, duration };
       });
       const streamCycleDuration = streamKeyframes.reduce((sum, kf) => sum + kf.duration, 0);
 
@@ -575,6 +678,10 @@ export function CinematicHero({
       // empty air). Loaded lazily: this is a one-shot decorative sequence,
       // not something that should sit in the initial bundle.
       const startBouncerPhysics = async () => {
+        // .cta-bouncer itself is hidden below lg (see the JSX) — bail here
+        // too rather than only visually, so Matter.js/the canvas rasterizer
+        // never even loads on mobile for a sequence nobody will see there.
+        if (window.innerWidth < 1024) return;
         const host = containerRef.current?.getBoundingClientRect();
         const iEl = containerRef.current?.querySelector<HTMLElement>(".cta-brand-i");
         const sixEl = containerRef.current?.querySelector<HTMLElement>(".cta-year-six");
@@ -800,6 +907,26 @@ export function CinematicHero({
           pin: true,
           scrub: 1,
           anticipatePin: 1,
+          // A flat fraction of the *whole* pinned range (tagline intro +
+          // mockup + curtain + CTA) was wrong here: the logo isn't even
+          // visible until the mockup section fades in, well past the
+          // fraction the spin was settling at — so by the time it appeared
+          // it had already finished turning, reading as permanently static.
+          // logoRevealStart/End (labels added in the chain below) mark
+          // exactly when .ascii-logo-scroll-wrapper fades in and when the
+          // curtain starts covering it, so the turn is mapped to only that
+          // visible stretch. Read scrollTl.duration()/.labels lazily here
+          // (not yet populated at this point in construction) — by the
+          // time a real scroll fires onUpdate the chain below has long
+          // since finished building.
+          onUpdate: (self) => {
+            const total = scrollTl.duration();
+            if (total <= 0) return;
+            const startFrac = (scrollTl.labels.logoRevealStart ?? 0) / total;
+            const endFrac = (scrollTl.labels.logoRevealEnd ?? total) / total;
+            const span = Math.max(0.0001, endFrac - startFrac);
+            logoSpinProgressRef.current = Math.max(0, Math.min(1, (self.progress - startFrac) / span));
+          },
         },
       });
 
@@ -814,6 +941,11 @@ export function CinematicHero({
         .to(".tagline3", { autoAlpha: 0, y: -30, ease: "power2.in", duration: 1 })
         // 3. Only now does the phone mockup / brand / copy layer appear —
         // the grid fades out for the duration of this section only.
+        // Marks exactly where .ascii-logo-scroll-wrapper's own fade-in
+        // tween below starts (same "-=0.2" target as this one, since it's
+        // chained at "<" to it) — read by the ScrollTrigger's onUpdate
+        // above to scope the logo's spin to when it's actually visible.
+        .addLabel("logoRevealStart", "-=0.2")
         .to(".cinematic-bg-grid", { scale: 1.15, filter: "blur(20px)", opacity: 0, ease: "power2.inOut", duration: 1.2 }, "-=0.2")
         .to(".content-group", { autoAlpha: 1, scale: 1, ease: "power3.out", duration: 2 }, "<")
         .to(".ascii-logo-scroll-wrapper", {
@@ -849,6 +981,9 @@ export function CinematicHero({
         .fromTo(".card-left-text", { x: -50, autoAlpha: 0 }, { x: 0, autoAlpha: 1, ease: "power4.out", duration: 1.5 }, "-=1.5")
         .fromTo(".card-right-text", { x: 50, autoAlpha: 0, scale: 0.8 }, { x: 0, autoAlpha: 1, scale: 1, ease: "expo.out", duration: 1.5 }, "<")
         .to({}, { duration: 2.5 })
+        // Marks where the curtain starts covering the logo — the spin
+        // should be fully settled by here, not still catching up.
+        .addLabel("logoRevealEnd")
         // 4. A staggered curtain closes over the mockup. Swap the scene while
         // it is covered, then open it from the opposite edge onto the CTA.
         .to(".curtain-blind", {
@@ -858,7 +993,11 @@ export function CinematicHero({
           duration: 0.76,
           stagger: { each: 0.09, from: "start" },
         })
-        .to([".mockup-scroll-wrapper", ".floating-badge", ".card-left-text", ".card-right-text"], {
+        // Mockup itself no longer fades/scales away here — it stays put and
+        // fully visible; the curtain closing over it (the tween right above)
+        // is the only transition hiding it now. Everything else in the
+        // content group still fades as before.
+        .to([".floating-badge", ".card-left-text", ".card-right-text"], {
           scale: 0.9, y: -40, z: -200, autoAlpha: 0, ease: "power3.in", duration: 0.5, stagger: 0.03,
         }, "<")
         .to(".ascii-logo-scroll-wrapper", {
@@ -902,6 +1041,8 @@ export function CinematicHero({
       physicsRafs.forEach((id) => cancelAnimationFrame(id));
       physicsTimers.forEach((id) => window.clearTimeout(id));
       matterCleanup?.();
+      gsap.ticker.remove(lenisTick);
+      lenis.destroy();
       ctx.revert();
     };
   }, [chatPrompt, reduced]);
@@ -1078,7 +1219,7 @@ export function CinematicHero({
       <button
         type="button"
         onClick={handlePrimaryTap}
-        className={`cinematic-glow-pill inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white ${primaryPressed ? "is-active" : ""}`}
+        className={`cinematic-glow-pill cinematic-primary-cta inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold ${primaryPressed ? "is-active" : ""}`}
       >
         {ctaPrimaryLabel}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1138,31 +1279,43 @@ export function CinematicHero({
   return (
     <div
       ref={containerRef}
-      className={`relative w-screen h-screen overflow-hidden flex items-center justify-center bg-surface text-on-surface font-sans antialiased ${className}`}
+      className={`relative w-screen h-screen overflow-hidden flex items-center justify-center cinematic-stage-bg text-on-surface font-sans antialiased ${className}`}
       style={{ perspective: "1500px" }}
     >
       <style dangerouslySetInnerHTML={{ __html: INJECTED_STYLES }} />
       <div className="cinematic-film-grain" aria-hidden="true" />
-      <div className="cinematic-bg-grid absolute inset-0 z-0 pointer-events-none opacity-50" aria-hidden="true" />
+      <div className="cinematic-bg-grid absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
-      {/* Solid black blinds: close one-by-one, then reveal the CTA. */}
+      {/* Blinds close one-by-one, then reveal the CTA — color is theme-aware, see .curtain-blind above. */}
       <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden" aria-hidden="true">
-        {Array.from({ length: 12 }, (_, index) => (
+        {Array.from({ length: 5 }, (_, index) => (
           <span
             key={index}
-            className="curtain-blind absolute inset-y-0 block bg-black will-change-transform"
+            className="curtain-blind absolute inset-y-0 block will-change-transform"
             style={{
-              left: `${(index / 12) * 100}%`,
-              width: `${100 / 12 + 0.12}%`,
+              left: `calc(${(index / 5) * 100}% - 1px)`,
+              // A fixed 2px pixel overlap, not a percentage one — at narrow
+              // (mobile) viewports a sub-percent gap is only a couple of
+              // real pixels wide to begin with, so rounding/subpixel
+              // rendering was enough to show a hairline of white between
+              // blinds. A pixel-based overlap stays wide enough at any
+              // viewport size.
+              width: `calc(${100 / 5}% + 2px)`,
             }}
           />
         ))}
       </div>
 
-      {/* The logo is behind the phone layer, so it can remain centered during
-          the mockup beat without blocking the interactive content. */}
-      <div className="ascii-logo-scroll-wrapper absolute inset-0 z-15 flex items-center justify-end pr-6 md:pr-12 lg:pr-24 pointer-events-none will-change-transform" style={{ perspective: "1400px", transformStyle: "preserve-3d" }}>
-        <AsciiIzaLogo3D className="w-56 md:w-80 lg:w-112" alt={brandName} />
+      {/* The logo is behind the phone layer (z-15 vs content-group's z-20),
+          so it can remain centered during the mockup beat without blocking
+          the interactive content — that only works at md+ where it sits
+          off to the right, clear of the phone. Below md, content stacks in
+          one column and a right-centered logo lands directly behind the
+          phone (hidden, per the z-index above) instead of above it — so on
+          mobile it's pinned to the top-center instead, ahead of where the
+          phone renders in that stack. */}
+      <div className="ascii-logo-scroll-wrapper absolute inset-0 z-15 flex items-start justify-center pt-24 md:items-center md:justify-end md:pr-12 lg:pr-24 pointer-events-none will-change-transform" style={{ perspective: "1400px", transformStyle: "preserve-3d" }}>
+        <AsciiIzaLogo3D className="w-56 md:w-80 lg:w-112" alt={brandName} spinProgressRef={logoSpinProgressRef} />
       </div>
 
       {/* Hero tagline layer */}
@@ -1184,7 +1337,7 @@ export function CinematicHero({
       </div>
 
       {/* CTA layer: project brief on the left, nine-part IZA scene on right. */}
-      <div className="cta-wrapper absolute inset-0 z-10 w-screen px-19 md:px-24 lg:px-30 gsap-reveal pointer-events-auto will-change-transform">
+      <div className="cta-wrapper absolute inset-0 z-10 w-screen px-5 md:px-10 lg:px-30 gsap-reveal pointer-events-auto will-change-transform">
         {/* Not a 2-column grid anymore — the right side (cards) is absolute
             and doesn't reserve any width, so the left column is free to
             take a bigger left margin without the two sides fighting over a
@@ -1240,13 +1393,19 @@ export function CinematicHero({
             })}
           </div>
         </div>
-        <div className="cta-bouncer cta-bouncer-one absolute left-0 top-0 z-30 h-8 w-8 md:h-10 md:w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)]" aria-hidden="true">
+        {/* Desktop-only, same as .cta-orbit above — the physics setup relies
+            on the heading sitting on one un-wrapped line to find contact
+            surfaces, which isn't the layout below lg (centered, wraps to
+            multiple lines), so it's hidden rather than run somewhere it
+            wasn't built to work. startBouncerPhysics itself also bails out
+            below this breakpoint (see the width check inside it). */}
+        <div className="cta-bouncer cta-bouncer-one absolute left-0 top-0 z-30 hidden h-10 w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)] lg:block" aria-hidden="true">
           <Image src={rectangle52} alt="" fill sizes="40px" className="rounded-[28%] object-contain" />
         </div>
-        <div className="cta-bouncer cta-bouncer-two absolute left-0 top-0 z-30 h-8 w-8 md:h-10 md:w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)]" aria-hidden="true">
+        <div className="cta-bouncer cta-bouncer-two absolute left-0 top-0 z-30 hidden h-10 w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)] lg:block" aria-hidden="true">
           <Image src={rectangle53} alt="" fill sizes="40px" className="rounded-[28%] object-contain" />
         </div>
-        <div className="cta-bouncer cta-bouncer-three absolute left-0 top-0 z-30 h-8 w-8 md:h-10 md:w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)]" aria-hidden="true">
+        <div className="cta-bouncer cta-bouncer-three absolute left-0 top-0 z-30 hidden h-10 w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)] lg:block" aria-hidden="true">
           <Image src={rectangle54} alt="" fill sizes="40px" className="rounded-[28%] object-contain" />
         </div>
       </div>

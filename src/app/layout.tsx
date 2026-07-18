@@ -18,6 +18,7 @@ import { IntakeVisibilityProvider } from "@/lib/intake-visibility";
 import { ThemeProvider, themeInitScript } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/language";
 import { siteLoaderInitScript } from "@/lib/site-loader";
+import { SiteLoaderPunctuation } from "@/components/layout/SiteLoaderPunctuation";
 
 export const metadata: Metadata = {
   title: "izadesign",
@@ -79,7 +80,10 @@ export default function RootLayout({
               priority
               className="site-loader-logo site-loader-logo-light"
             />
-            <span className="site-loader-brandtext">design!?</span>
+            <span className="site-loader-brandtext">
+              design
+              <SiteLoaderPunctuation />
+            </span>
           </div>
         </div>
         <ThemeProvider>

@@ -85,6 +85,19 @@
   --glass-input-bg: #F3F4F6;
 }
 
+/*
+ * Flat black/white — not --color-surface (that's charcoal in dark mode,
+ * not pure black). Used as the /work page's pre-load fallback behind the
+ * dome-grid canvas (MarketingBackground.tsx), so there's no mismatched
+ * color flash while the WebGL dome is still loading.
+ */
+.stage-fallback-bg {
+  background-color: #000000;
+}
+.light .stage-fallback-bg {
+  background-color: #ffffff;
+}
+
 html {
   /*
    * Reserve the scrollbar gutter permanently. Without this, entering the
@@ -159,7 +172,7 @@ html.site-loaded #site-loader {
 
 #site-loader .site-loader-logo {
   height: auto;
-  width: 94px;
+  width: 120px;
 }
 
 #site-loader .site-loader-logo-light {
@@ -176,7 +189,7 @@ html.light #site-loader .site-loader-logo-light {
 
 #site-loader .site-loader-brandtext {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
   color: #ffffff;
 }
@@ -184,4 +197,3 @@ html.light #site-loader .site-loader-logo-light {
 html.light #site-loader .site-loader-brandtext {
   color: #000000;
 }
-

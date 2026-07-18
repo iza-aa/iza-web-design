@@ -1,20 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
-function markAmbientReady() {
-  (window as Window & { __ambientState?: string }).__ambientState = "ready";
-  window.dispatchEvent(new Event("ambient-canvas-ready"));
-}
-
-function canCreateWebGLContext() {
-  try {
-    const probe = document.createElement("canvas");
-    return Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
+import { canCreateWebGLContext, markAmbientReady } from "@/components/canvas/ambient-ready";
 
 const DOT_PX = 5.5;
 const OPACITY = 0.42;

@@ -3,16 +3,72 @@
 import { useEffect, useRef, useState } from "react";
 import lefttoplogo from "@/assets/logo/lefttoplogo.png";
 import { createIzaLogoGeometry } from "./iza-logo-geometry";
+import { useTheme } from "@/lib/theme";
+
+// -0.38 is the mesh's own "reads correctly, front-on" resting angle (it was
+// the initial pose before this ever animated). Landing back on that exact
+// value — not just "close" — is what spinProgress below is built around.
+const LOGO_REST_ROTATION_Y = -0.38;
+
+// Solid color, no gradient, no glow — plain white on dark backgrounds,
+// plain black on light ones. Removes the background-clip:text trick
+// entirely rather than swapping in a single-stop "gradient": that trick
+// existed only to paint a multi-stop gradient onto the glyphs, which a flat
+// color doesn't need.
+function applyThemeColor(el: HTMLElement, theme: "dark" | "light") {
+  const color = theme === "light" ? "#000000" : "#ffffff";
+  el.style.backgroundImage = "none";
+  el.style.backgroundClip = "unset";
+  el.style.webkitBackgroundClip = "unset";
+  el.style.webkitTextFillColor = "unset";
+  el.style.color = color;
+  el.style.textShadow = "none";
+  el.style.filter = "none";
+  const table = el.querySelector("table") as HTMLTableElement | null;
+  if (table) {
+    table.style.backgroundImage = "none";
+    table.style.backgroundClip = "unset";
+    table.style.webkitBackgroundClip = "unset";
+    table.style.webkitTextFillColor = "unset";
+    table.style.color = color;
+  }
+}
 
 /**
  * A direct adaptation of the STL-to-ASCII technique: light a real 3D mesh,
  * then let Three's AsciiEffect convert the rendered luminance into glyphs.
  * This deliberately avoids putting a repeating pattern *on* the material.
+ *
+ * `spinProgressRef`, if given, drives the logo's rotation directly from that
+ * ref's value (expected 0-1, updated imperatively by the caller — typically
+ * from a ScrollTrigger onUpdate — no React re-render needed for either
+ * side). At 0 it sits at the resting angle; at 1 it's completed exactly one
+ * full turn and is back on that same resting angle, readable. Without a
+ * ref, it just sits still at the resting angle — this never free-spins on
+ * its own on a timer.
  */
-export function AsciiIzaLogo3D({ className = "", alt = "IZA" }: { className?: string; alt?: string }) {
+export function AsciiIzaLogo3D({
+  className = "",
+  alt = "IZA",
+  spinProgressRef,
+}: {
+  className?: string;
+  alt?: string;
+  spinProgressRef?: { current: number };
+}) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [isWebGLReady, setIsWebGLReady] = useState(false);
   const [fallbackAscii, setFallbackAscii] = useState("");
+  const { theme } = useTheme();
+  const effectElRef = useRef<HTMLElement | null>(null);
+  // Read at WebGL-setup time (effect deps are [alt], not [theme] — a theme
+  // toggle shouldn't tear down and rebuild the whole scene) and kept fresh
+  // for the live-toggle effect below to re-apply without needing that.
+  const themeRef = useRef(theme);
+  useEffect(() => {
+    themeRef.current = theme;
+    if (effectElRef.current) applyThemeColor(effectElRef.current, theme);
+  }, [theme]);
 
   useEffect(() => {
     const image = new window.Image();
@@ -63,25 +119,12 @@ export function AsciiIzaLogo3D({ className = "", alt = "IZA" }: { className?: st
       // space. The ASCII effect selects between them from mesh luminance.
       const effect = new AsciiEffect(renderer, " ┼┼┼┼┼┼┼", { invert: true, resolution: 0.19 });
       effect.domElement.setAttribute("aria-label", alt);
-      const asciiGradient = "radial-gradient(circle at 22% 15%, #ffffff 0 10%, #fff7a6 20%, #ffe600 38%, #ff8a00 57%, #ff2a00 76%, #7d1000 100%)";
-      effect.domElement.style.color = "#fff8e5";
       effect.domElement.style.backgroundColor = "transparent";
-      effect.domElement.style.backgroundImage = asciiGradient;
-      effect.domElement.style.backgroundClip = "text";
-      effect.domElement.style.webkitBackgroundClip = "text";
-      effect.domElement.style.webkitTextFillColor = "transparent";
-      effect.domElement.style.textShadow = "0 0 2px rgba(255,255,255,0.95), 0 0 8px rgba(255,132,0,0.95), 0 0 18px rgba(255,42,0,0.5)";
-      effect.domElement.style.filter = "drop-shadow(0 0 14px rgba(255,117,0,0.7))";
       effect.domElement.style.width = "100%";
       effect.domElement.style.height = "100%";
-      const table = effect.domElement.querySelector("table") as HTMLTableElement | null;
-      if (table) {
-        table.style.backgroundImage = asciiGradient;
-        table.style.backgroundClip = "text";
-        table.style.webkitBackgroundClip = "text";
-        table.style.webkitTextFillColor = "transparent";
-      }
       stage.replaceChildren(effect.domElement);
+      effectElRef.current = effect.domElement;
+      applyThemeColor(effect.domElement, themeRef.current);
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x030514);
@@ -104,7 +147,7 @@ export function AsciiIzaLogo3D({ className = "", alt = "IZA" }: { className?: st
       const group = new THREE.Group();
       group.add(mesh);
       group.scale.setScalar(scale);
-      group.rotation.set(-0.08, -0.38, 0.02);
+      group.rotation.set(-0.08, LOGO_REST_ROTATION_Y, 0.02);
       scene.add(group);
 
       scene.add(new THREE.AmbientLight(0xff6a00, 0.35));
@@ -127,9 +170,16 @@ export function AsciiIzaLogo3D({ className = "", alt = "IZA" }: { className?: st
       const startedAt = performance.now();
       function render(now: number) {
         if (disposed) return;
+        // 0 at rest, 1 after exactly one full turn — never driven by
+        // elapsed time, so it can't land the mesh at some arbitrary
+        // in-between angle. Without a ref (spinProgress fixed at 1) it just
+        // sits at the resting, readable pose permanently.
+        const spin = Math.max(0, Math.min(1, spinProgressRef?.current ?? 1));
+        group.rotation.y = LOGO_REST_ROTATION_Y + spin * Math.PI * 2;
+        // The idle wobble fades out as it approaches the resting angle, so
+        // it's genuinely still (not just close) once settled.
         const t = (now - startedAt) / 1000;
-        group.rotation.y = -0.38 + t * 0.28;
-        mesh.rotation.x = Math.sin(t * 0.7) * 0.08;
+        mesh.rotation.x = Math.sin(t * 0.7) * 0.08 * (1 - spin);
         effect.render(scene, camera);
         frame = requestAnimationFrame(render);
       }
@@ -164,7 +214,7 @@ export function AsciiIzaLogo3D({ className = "", alt = "IZA" }: { className?: st
       {!isWebGLReady && fallbackAscii && (
         <pre
           aria-hidden
-          className="absolute inset-0 m-0 flex items-center justify-center overflow-hidden whitespace-pre text-center font-mono text-[clamp(4px,0.72vw,10px)] leading-[0.7] tracking-[-0.08em] text-white [text-shadow:0_0_2px_#fff,0_0_8px_#ff8a00,0_0_18px_rgba(255,42,0,0.55)]"
+          className={`absolute inset-0 m-0 flex items-center justify-center overflow-hidden whitespace-pre text-center font-mono text-[clamp(4px,0.72vw,10px)] leading-[0.7] tracking-[-0.08em] ${theme === "light" ? "text-black" : "text-white"}`}
         >
           {fallbackAscii}
         </pre>
