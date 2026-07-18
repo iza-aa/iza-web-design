@@ -8,9 +8,17 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { PlasmaLogoMark } from "@/components/marketing/PlasmaLogoMark";
+import { AsciiIzaLogo3D } from "@/components/marketing/AsciiIzaLogo3D";
 import callMeHandEmoji from "@/assets/emoji/call-me-hand_1f919.png";
 import beamingFaceEmoji from "@/assets/emoji/beaming-face-with-smiling-eyes_1f601.png";
+import rectangle52 from "@/assets/logo/Rectangle 52.png";
+import rectangle53 from "@/assets/logo/Rectangle 53.png";
+import rectangle54 from "@/assets/logo/Rectangle 54.png";
+import type { DesignEntry } from "@/lib/design-gallery";
+// Type-only — the runtime module is dynamically imported inside the effect
+// below, since it's only needed for a decorative one-shot sequence and
+// shouldn't sit in the initial bundle.
+import type Matter from "matter-js";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, TextPlugin, MotionPathPlugin);
@@ -156,6 +164,22 @@ const INJECTED_STYLES = `
   }
 `;
 
+// Fixed per-slot framing (position/size/corner radius/shadow) for the nine
+// cards in the CTA's project stream. The GSAP timeline in the effect below
+// animates all nine identically via the shared `.cta-stream-card` class —
+// only the resting frame and which real project fills it differ per slot.
+const STREAM_CARD_SLOTS = [
+  { position: "right-8 top-12", size: "h-44 w-72", rounded: "rounded-[1.7rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.16)]" },
+  { position: "right-2 top-24", size: "h-52 w-80", rounded: "rounded-[1.9rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.17)]" },
+  { position: "right-12 top-5", size: "h-40 w-64", rounded: "rounded-[1.5rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.15)]" },
+  { position: "right-0 top-20", size: "h-48 w-72", rounded: "rounded-[1.8rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.18)]" },
+  { position: "right-6 top-32", size: "h-42 w-68", rounded: "rounded-[1.6rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.16)]" },
+  { position: "right-16 top-16", size: "h-46 w-76", rounded: "rounded-[1.7rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.17)]" },
+  { position: "right-4 top-2", size: "h-40 w-68", rounded: "rounded-[1.5rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.15)]" },
+  { position: "right-10 top-28", size: "h-50 w-78", rounded: "rounded-[1.8rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.18)]" },
+  { position: "right-1 top-8", size: "h-44 w-72", rounded: "rounded-[1.7rem]", shadow: "shadow-[0_24px_60px_rgba(0,0,0,0.16)]" },
+] as const;
+
 export interface CinematicHeroProps {
   brandName?: string;
   tagline1: string;
@@ -216,10 +240,40 @@ export function CinematicHero({
   const containerRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>(0);
+  const ctaAutoPlayedRef = useRef(false);
   const gsapCtxRef = useRef<gsap.Context | null>(null);
   const reduced = useReducedMotion();
   const router = useRouter();
   const [primaryPressed, setPrimaryPressed] = useState(false);
+  const [streamCards, setStreamCards] = useState<DesignEntry[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    // Straight to the route handler, not `useDesignEntries` — that hook
+    // concatenates local iza/color-reference entries on top of the fetched
+    // superdesign ones, and this stream is meant to be superdesign.dev
+    // work specifically, not the whole gallery's mixed sources.
+    fetch("/api/design-gallery")
+      .then((res) => res.json())
+      .then((data: { items: DesignEntry[] }) => {
+        if (cancelled) return;
+        const withImages = data.items.filter((entry) => entry.thumbnailUrl && !entry.thumbnailIsVideo);
+        const pool = [...withImages];
+        const picked: DesignEntry[] = [];
+        for (let i = 0; i < STREAM_CARD_SLOTS.length && pool.length > 0; i++) {
+          picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+        }
+        setStreamCards(picked);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const normalizedCtaHeading = ctaHeading.toLowerCase();
+  const yourStart = normalizedCtaHeading.indexOf("your");
+  const projectStart = normalizedCtaHeading.indexOf("project");
+  const yourOIndex = yourStart >= 0 ? yourStart + 1 : -1;
+  const projectTIndex = projectStart >= 0 ? projectStart + 6 : -1;
 
   // Navigate away by killing ScrollTrigger's pin-spacer *before* Next.js
   // unmounts this page — don't rely on the effect cleanup's timing (see the
@@ -280,18 +334,458 @@ export function CinematicHero({
   useIsomorphicLayoutEffect(() => {
     if (reduced) return;
 
+    const physicsRafs = new Set<number>();
+    const physicsTimers = new Set<number>();
+    let matterCleanup: (() => void) | null = null;
     const ctx = gsap.context(() => {
       gsap.set(".text-track", { autoAlpha: 0, y: 60, scale: 0.85, filter: "blur(20px)", rotationX: -20 });
       gsap.set(".text-days", { autoAlpha: 1, clipPath: "inset(0 100% 0 0)" });
       gsap.set(".content-group", { autoAlpha: 0, scale: 0.92 });
+      // The wrapper stays on one vertical rail at the right. Scroll controls
+      // only its travel; the WebGL mesh itself owns the continuous rotation.
+      gsap.set(".ascii-logo-scroll-wrapper", { autoAlpha: 0, y: -window.innerHeight * 1.15, x: 0, rotationY: 0, rotationZ: 0, scale: 1 });
       gsap.set([".card-left-text", ".card-right-text", ".mockup-scroll-wrapper", ".floating-badge", ".flow-marker", ".live-notif"], { autoAlpha: 0 });
+      // DOM panels keep the scroll-scrubbed transition responsive even on
+      // devices where WebGL is unavailable or context creation is throttled.
+      gsap.set(".curtain-blind", { scaleY: 0, transformOrigin: "top center", force3D: true });
       gsap.set(".tagline3", { autoAlpha: 0, y: 30 });
       gsap.set(".chat-mock", { height: 40, borderRadius: 20 });
       gsap.set([".chat-typed-row", ".chat-toolbar-row"], { autoAlpha: 0 });
       gsap.set(".chat-action-glow", { autoAlpha: 0, scale: 0.6 });
       gsap.set(".chat-typed-text", { text: "" });
-      gsap.set(".cta-wrapper", { autoAlpha: 0, scale: 0.8, filter: "blur(30px)" });
+      gsap.set(".cta-wrapper", { autoAlpha: 0, scale: 1, filter: "blur(30px)" });
       gsap.set(".cta-heading, .cta-description, .cta-buttons", { autoAlpha: 0, y: 24 });
+      gsap.set(".cta-orbit", { autoAlpha: 0 });
+      gsap.set(".cta-stream-card", { autoAlpha: 0, x: 150, y: -420, scale: 0.8, rotation: 0 });
+      gsap.set(".cta-bouncer", { autoAlpha: 0, scale: 0.72 });
+
+      // CTA is deliberately not part of the scroll-scrubbed timeline. The
+      // scroll only uncovers it; this sequence then plays at normal time.
+      //
+      // `repeat` lives inside `stagger`, not on a wrapping timeline — with a
+      // parent timeline repeating the whole staggered group, every card
+      // snaps back to its start position in sync on each restart, reading
+      // as a stutter/pause. Putting `repeat: -1` in the stagger config
+      // instead makes each card's own tween loop independently the instant
+      // it finishes, so the stream never has a moment where everything
+      // resets at once. `ease: "none"` keeps velocity constant WITHIN each
+      // leg — it doesn't make the legs match EACH OTHER. The waypoints below
+      // were picked by eye, so each leg covers a different pixel distance;
+      // handing them equal-ish durations regardless meant the first visible
+      // leg (a long diagonal, ~4x the distance of the shortest leg) read as
+      // a fast launch that then suddenly slowed down. Deriving each leg's
+      // duration from its own measured distance at a fixed px/sec instead
+      // makes speed constant across the *whole* path, not just inside one
+      // segment of it.
+      const streamSpeedPxPerSec = 90;
+      // Each card's own resting CSS position (the `right-N`/`top-N` on
+      // `.cta-stream-card`) already anchors it near .cta-orbit's right
+      // edge, which itself hugs the viewport's right edge — so the visible
+      // keyframes below (kf1-kf3, the "flowing through screen" ones) were
+      // landing almost flush with the right edge even with a small x
+      // offset. This pulls just those toward roughly the 3/4-of-viewport
+      // mark instead.
+      const streamXShift = -window.innerWidth * 0.09;
+      const streamEntryX = 34 + streamXShift;
+      const streamWaypoints = [
+        // Spawns directly above kf1, not off to the right — same x as kf1,
+        // just far off-screen above it — so the card visibly falls in from
+        // the top into its resting column instead of sliding in from the
+        // side.
+        { autoAlpha: 0, x: streamEntryX, y: -720, scale: 0.72, rotation: 0 },
+        { autoAlpha: 1, x: streamEntryX, y: -170, scale: 0.95, rotation: 0 },
+        { autoAlpha: 1, x: -48 + streamXShift, y: 90, scale: 1, rotation: 0 },
+        { autoAlpha: 1, x: 24 + streamXShift, y: 280, scale: 0.92, rotation: 0 },
+        { autoAlpha: 0, x: window.innerWidth * 0.48, y: window.innerHeight * 0.72, scale: 0.76, rotation: 0 },
+      ];
+      const streamKeyframes = streamWaypoints.map((point, i) => {
+        // Keyframe 0 is the hidden reset jump back to the start of the loop
+        // (autoAlpha 0 the whole time) — kept near-instant on purpose, not
+        // part of the constant-speed path itself.
+        if (i === 0) return { ...point, duration: 0.01 };
+        const prev = streamWaypoints[i - 1];
+        return { ...point, duration: Math.hypot(point.x - prev.x, point.y - prev.y) / streamSpeedPxPerSec };
+      });
+      const streamCycleDuration = streamKeyframes.reduce((sum, kf) => sum + kf.duration, 0);
+
+      const cardStreamLoop = gsap.to(".cta-stream-card", {
+        keyframes: streamKeyframes,
+        ease: "none",
+        paused: true,
+        // Spreads the 4 cards evenly across one full cycle rather than a
+        // fixed guess, so it still reads as an even stream regardless of
+        // how streamSpeedPxPerSec changes the cycle's total length.
+        stagger: { each: streamCycleDuration / STREAM_CARD_SLOTS.length, repeat: -1 },
+      });
+
+      // Real glyph-ink collider, not the element's line-box top. Rasterizing
+      // the same text at the same computed font onto an offscreen canvas and
+      // scanning for the first non-transparent pixel row finds the true ink
+      // top instead of trusting ascent metrics to agree with what's actually
+      // rendered. Only runs once per glyph when a prop's physics starts, not
+      // per frame.
+      //
+      // The one thing that rasterizing alone doesn't give you: WHERE within
+      // `rect` to draw before scanning. `rect.height` is the full line box,
+      // taller than the font's own em-square by its leading, and browsers
+      // split that leading evenly above and below the em-square (the CSS
+      // half-leading rule) — so the real glyph sits vertically centered in
+      // `rect`, not flush with its top. Drawing at the canvas's own top
+      // edge (`textBaseline: "top"` at y 0) ignored that and put every
+      // surface too high, which is exactly why props were resting with a
+      // visible gap above the letter instead of on it. Reproducing the
+      // half-leading offset via fontBoundingBoxAscent/Descent before
+      // rasterizing fixes that: it only has to get the coarse vertical
+      // centering right, and the pixel scan still finds the exact ink row
+      // within wherever that lands.
+      const glyphRasterCanvas = document.createElement("canvas");
+      const glyphRasterCtx = glyphRasterCanvas.getContext("2d", { willReadFrequently: true });
+
+      // Returns just the distance from `el`'s own rect.top down to its real
+      // ink top — not an absolute position — so it can be measured once on
+      // a container and reused for every character on that same text row.
+      // That reuse matters: measuring this per tiny single-character
+      // inline-block span (each heading letter) rather than on the shared
+      // line itself is what was still leaving a gap on the heading after
+      // the kicker line (measured on its own single `<p>`, not per-glyph)
+      // came out correct — an auto-height inline-block sized around one
+      // glyph doesn't reliably reproduce the same line-box metrics as the
+      // shared row it actually sits on.
+      const verticalInkOffset = (el: Element) => {
+        const rect = el.getBoundingClientRect();
+        const text = el.textContent?.trim();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
+        if (!glyphRasterCtx || !text || width <= 0 || height <= 0) return 0;
+
+        const style = getComputedStyle(el);
+        const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        glyphRasterCanvas.width = width;
+        glyphRasterCanvas.height = height;
+        glyphRasterCtx.font = font;
+        glyphRasterCtx.fillStyle = "#000";
+
+        const metrics = glyphRasterCtx.measureText(text);
+        const fontSize = parseFloat(style.fontSize) || height;
+        const fontAscent = metrics.fontBoundingBoxAscent ?? fontSize * 0.92;
+        const fontDescent = metrics.fontBoundingBoxDescent ?? fontSize * 0.22;
+        const halfLeading = Math.max(0, (height - (fontAscent + fontDescent)) / 2);
+
+        glyphRasterCtx.textBaseline = "alphabetic";
+        glyphRasterCtx.fillText(text, 0, halfLeading + fontAscent);
+
+        const { data } = glyphRasterCtx.getImageData(0, 0, width, height);
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            if (data[(y * width + x) * 4 + 3] > 32) return y;
+          }
+        }
+        return 0;
+      };
+      const glyphInkTop = (el: Element, hostTop: number) => el.getBoundingClientRect().top - hostTop + verticalInkOffset(el);
+
+      // A single ink-top per glyph is right for most letters, but "j" (and
+      // "i") are two disconnected ink blobs — a dot floating well above the
+      // stem — so one flat surface at either height leaves the other blob
+      // with nothing under it. The stem gets covered by the uniform row
+      // plate already; this finds the dot specifically (a real connected-
+      // component scan on the rasterized glyph, not a guess) so it becomes
+      // its own tiny bump instead of a hole the prop rolls straight through.
+      const findDotBump = (el: Element, hostLeft: number, hostTop: number) => {
+        const rect = el.getBoundingClientRect();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
+        const text = el.textContent?.trim();
+        if (!glyphRasterCtx || !text || width <= 0 || height <= 0) return null;
+
+        const style = getComputedStyle(el);
+        glyphRasterCanvas.width = width;
+        glyphRasterCanvas.height = height;
+        glyphRasterCtx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        glyphRasterCtx.fillStyle = "#000";
+        glyphRasterCtx.clearRect(0, 0, width, height);
+
+        const metrics = glyphRasterCtx.measureText(text);
+        const fontSize = parseFloat(style.fontSize) || height;
+        const fontAscent = metrics.fontBoundingBoxAscent ?? fontSize * 0.92;
+        const fontDescent = metrics.fontBoundingBoxDescent ?? fontSize * 0.22;
+        const halfLeading = Math.max(0, (height - (fontAscent + fontDescent)) / 2);
+        glyphRasterCtx.textBaseline = "alphabetic";
+        glyphRasterCtx.fillText(text, 0, halfLeading + fontAscent);
+
+        const { data } = glyphRasterCtx.getImageData(0, 0, width, height);
+        const isInk = (x: number, y: number) => x >= 0 && x < width && y >= 0 && y < height && data[(y * width + x) * 4 + 3] > 32;
+
+        // Flood-fill (4-directional) every ink pixel into connected blobs.
+        const visited = new Uint8Array(width * height);
+        const blobs: { minX: number; maxX: number; minY: number; maxY: number; size: number }[] = [];
+        for (let sy = 0; sy < height; sy++) {
+          for (let sx = 0; sx < width; sx++) {
+            if (!isInk(sx, sy) || visited[sy * width + sx]) continue;
+            const stack: [number, number][] = [[sx, sy]];
+            visited[sy * width + sx] = 1;
+            let minX = sx, maxX = sx, minY = sy, maxY = sy, size = 0;
+            while (stack.length) {
+              const [cx, cy] = stack.pop()!;
+              size += 1;
+              if (cx < minX) minX = cx;
+              if (cx > maxX) maxX = cx;
+              if (cy < minY) minY = cy;
+              if (cy > maxY) maxY = cy;
+              for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+                const nx = cx + dx;
+                const ny = cy + dy;
+                if (isInk(nx, ny) && !visited[ny * width + nx]) {
+                  visited[ny * width + nx] = 1;
+                  stack.push([nx, ny]);
+                }
+              }
+            }
+            blobs.push({ minX, maxX, minY, maxY, size });
+          }
+        }
+        if (blobs.length < 2) return null;
+
+        const stem = blobs.reduce((a, b) => (b.size > a.size ? b : a));
+        const dot = blobs.find((b) => b !== stem && b.maxY < stem.minY + (stem.maxY - stem.minY) * 0.4);
+        if (!dot) return null;
+
+        return {
+          left: rect.left - hostLeft + dot.minX,
+          right: rect.left - hostLeft + dot.maxX + 1,
+          top: rect.top - hostTop + dot.minY,
+        };
+      };
+
+      const ctaAutoTl = gsap.timeline({ paused: true });
+      ctaAutoTl
+        .fromTo(".cta-heading", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "power3.out", duration: 0.8 })
+        .fromTo(".cta-description", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "power3.out", duration: 0.8 }, "-=0.48")
+        .fromTo(".cta-buttons", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "power3.out", duration: 0.8 }, "-=0.48")
+        .to(".cta-orbit", { autoAlpha: 1, duration: 0.01 }, "<")
+        .call(() => cardStreamLoop.restart(), [], "<");
+
+      // Real rigid-body sim (Matter.js), not a scripted approximation: every
+      // glyph the props cross is its own static collider, positioned at its
+      // measured ink-top surface. Rotation is never assigned directly — it's
+      // whatever torque the engine's friction contact produces, so a prop
+      // only spins while it's actually rolling on a surface and stops dead
+      // the instant it's airborne, which is what a scripted "angle +=
+      // f(velocity)" formula could never guarantee (it kept spinning through
+      // empty air). Loaded lazily: this is a one-shot decorative sequence,
+      // not something that should sit in the initial bundle.
+      const startBouncerPhysics = async () => {
+        const host = containerRef.current?.getBoundingClientRect();
+        const iEl = containerRef.current?.querySelector<HTMLElement>(".cta-brand-i");
+        const sixEl = containerRef.current?.querySelector<HTMLElement>(".cta-year-six");
+        const oEl = containerRef.current?.querySelector<HTMLElement>(".cta-letter-your-o");
+        const tEl = containerRef.current?.querySelector<HTMLElement>(".cta-letter-project-t");
+        const kicker = containerRef.current?.querySelector<HTMLElement>(".cta-kicker");
+        const headingEl = containerRef.current?.querySelector<HTMLElement>(".cta-heading");
+        const headingChars = Array.from(containerRef.current?.querySelectorAll<HTMLElement>(".cta-heading-char") ?? [])
+          .filter((glyph) => glyph.textContent?.trim());
+        if (!host || !iEl || !sixEl || !oEl || !tEl || !kicker || !headingEl || !headingChars.length) return;
+
+        const Matter = await import("matter-js");
+        // The route may have changed (component torn down) while that
+        // import was in flight.
+        if (!containerRef.current) return;
+
+        const hostLeft = host.left;
+        const engine = Matter.Engine.create({ gravity: { x: 0, y: 1.65 } });
+        const world = engine.world;
+
+        // A thin static plate per contact surface. Its top edge is pinned
+        // to the glyph's real ink-top, so a prop's underside meets the
+        // actual visible stroke instead of a font-size-dependent line box.
+        const plateThickness = 16;
+        const makePlate = (left: number, right: number, top: number) =>
+          Matter.Bodies.rectangle(
+            (left + right) / 2,
+            top + plateThickness / 2,
+            Math.max(1, right - left),
+            plateThickness,
+            { isStatic: true, friction: 0.9 },
+          );
+
+        const kickerRect = kicker.getBoundingClientRect();
+        const sixRect = sixEl.getBoundingClientRect();
+
+        // The kicker line only supports the prop up to the measured "6" —
+        // beyond that it's a separate plate per glyph, so a fall through the
+        // "2026" -> "your" gap is an actual gap in the collider, not a
+        // scripted phase switch. Its left edge is padded out past "I" itself
+        // — the prop spawns centered on "I"'s glyph, which sits right at the
+        // very start of the line, so without this margin half the prop's
+        // own width lands hanging off the plate's left edge with nothing
+        // under it, and gravity tips/slides it off to the left on contact.
+        const kickerPlate = makePlate(kickerRect.left - hostLeft - 30, sixRect.right - hostLeft, glyphInkTop(kicker, host.top));
+        // One offset for the whole heading row (see verticalInkOffset),
+        // applied to each character's own measured rect.top — correct even
+        // if the heading wraps, since every row shares the same font metrics
+        // and each char's own rect.top already reflects which row it's on.
+        //
+        // Measured on a throwaway plain-text clone, not `headingEl` itself:
+        // every character in the real heading is its own inline-block span
+        // (needed so each glyph has its own rect for horizontal placement),
+        // and that per-character splitting was itself skewing the parent
+        // H2's own line-box metrics enough to move the offset the wrong
+        // way — sank into the letters instead of floating above them. A
+        // clone with the same classes (same font/size/weight/line-height)
+        // but plain, unsplit text behaves like the kicker's own `<p>` — which
+        // already measures correctly — because it's laid out the same way.
+        const headingProbe = document.createElement(headingEl.tagName);
+        headingProbe.className = headingEl.className;
+        headingProbe.textContent = ctaHeading;
+        headingProbe.style.position = "absolute";
+        headingProbe.style.visibility = "hidden";
+        headingProbe.style.left = "-9999px";
+        headingProbe.style.top = "0";
+        headingProbe.style.margin = "0";
+        document.body.appendChild(headingProbe);
+        const headingInkOffset = verticalInkOffset(headingProbe);
+        headingProbe.remove();
+
+        const headingPlates = headingChars.map((glyph) => {
+          const rect = glyph.getBoundingClientRect();
+          return makePlate(rect.left - hostLeft, rect.right - hostLeft, rect.top - host.top + headingInkOffset);
+        });
+        // "j"/"i"'s dot sits well above the uniform row surface the stem
+        // already shares with its neighbors — without its own small plate
+        // there, a prop rolls straight through where the dot visually is.
+        const dotPlates = headingChars
+          .filter((glyph) => glyph.textContent === "j" || glyph.textContent === "i")
+          .map((glyph) => findDotBump(glyph, hostLeft, host.top))
+          .filter((bump): bump is NonNullable<typeof bump> => bump !== null)
+          .map((bump) => makePlate(bump.left, bump.right, bump.top));
+        Matter.Composite.add(world, [kickerPlate, ...headingPlates, ...dotPlates]);
+
+        const tRightEdge = tEl.getBoundingClientRect().right - hostLeft;
+        const iRect = iEl.getBoundingClientRect();
+        const spawnX = iRect.left - hostLeft + iRect.width / 2 + 18;
+
+        type ActiveProp = { body: Matter.Body; prop: HTMLElement; size: number; grounded: boolean };
+        const active: ActiveProp[] = [];
+
+        const markGrounded = (event: Matter.IEventCollision<Matter.Engine>, value: boolean) => {
+          for (const pair of event.pairs) {
+            for (const entry of active) {
+              if (pair.bodyA === entry.body || pair.bodyB === entry.body) entry.grounded = value;
+            }
+          }
+        };
+        Matter.Events.on(engine, "collisionStart", (event) => markGrounded(event, true));
+        Matter.Events.on(engine, "collisionEnd", (event) => markGrounded(event, false));
+
+        const bouncerSelectors = [".cta-bouncer-one", ".cta-bouncer-two", ".cta-bouncer-three"];
+        // Counts spawns within the current cycle, not the lifetime total —
+        // `active` briefly empties between the staggered spawns themselves
+        // (prop one can land and still be mid-roll while two hasn't dropped
+        // yet), so "all gone" alone isn't "cycle finished"; it only means
+        // that once every one of the three has actually been spawned.
+        let spawnedInCycle = 0;
+
+        const spawn = (selector: string, delayMs: number) => {
+          const prop = containerRef.current?.querySelector<HTMLElement>(selector);
+          if (!prop) return;
+          const timer = window.setTimeout(() => {
+            physicsTimers.delete(timer);
+            if (!containerRef.current) return;
+            // offsetWidth, not getBoundingClientRect().width — the prop
+            // still carries its resting `scale: 0.72` here, which would
+            // otherwise bake a shrunk number into the body's own size.
+            const size = prop.offsetWidth || 40;
+            const body = Matter.Bodies.rectangle(spawnX, -size - 30, size, size, {
+              restitution: 0.12,
+              friction: 0.9,
+              frictionAir: 0.0018,
+              density: 0.0025,
+              // Matches the art's own rounded-[28%] corners. A sharp-corner
+              // box "catches" on each pivot as it rolls — chamfering the
+              // collision hull itself is what actually makes the rotation
+              // read as smooth rolling instead of clunky tumbling.
+              chamfer: { radius: size * 0.28 },
+            });
+            Matter.Composite.add(world, body);
+            gsap.set(prop, { autoAlpha: 1, scale: 1, x: spawnX - size / 2, y: -size - 30, rotation: 0 });
+            active.push({ body, prop, size, grounded: false });
+            spawnedInCycle += 1;
+          }, delayMs);
+          physicsTimers.add(timer);
+        };
+
+        // Re-releases all three, staggered the same way, once every prop
+        // from the previous run has actually fallen off the bottom edge.
+        const runCycle = () => {
+          spawnedInCycle = 0;
+          bouncerSelectors.forEach((selector, i) => spawn(selector, i * 1900));
+        };
+        runCycle();
+
+        let previousTime = performance.now();
+        const step = (now: number) => {
+          const dt = Math.min(now - previousTime, 32);
+          previousTime = now;
+
+          // The one scripted input left: a small constant torque, like an
+          // engine driving the wheel — not a push on the body itself. A
+          // force applied at the body's own centroid has to first overcome
+          // static friction before anything moves, which is why the earlier
+          // version just sat there stuck: friction (0.9, deliberately high
+          // so it grips instead of skidding) happily cancelled a push that
+          // small. Spinning it instead means friction with the ground is
+          // what converts that spin into forward motion — exactly how a
+          // real tire moves a car — so it starts rolling immediately rather
+          // than needing to break static friction's grip first. It's applied
+          // for the prop's whole time on screen, not gated on `grounded`:
+          // gating it caused stalls of its own, since restitution makes
+          // contact flicker true/false for a frame or two on every landing,
+          // and torque spent spinning it in mid-air is harmless — it just
+          // keeps the wheel already turning when it touches back down.
+          for (const entry of active) {
+            if (entry.body.position.x < tRightEdge) {
+              entry.body.torque += 0.012 * entry.body.mass;
+            }
+          }
+
+          Matter.Engine.update(engine, dt);
+
+          for (let i = active.length - 1; i >= 0; i--) {
+            const entry = active[i];
+            gsap.set(entry.prop, {
+              x: entry.body.position.x - entry.size / 2,
+              y: entry.body.position.y - entry.size / 2,
+              rotation: (entry.body.angle * 180) / Math.PI,
+            });
+            if (entry.body.position.y - entry.size / 2 > window.innerHeight + entry.size) {
+              gsap.set(entry.prop, { autoAlpha: 0 });
+              Matter.Composite.remove(world, entry.body);
+              active.splice(i, 1);
+              if (active.length === 0 && spawnedInCycle === bouncerSelectors.length) {
+                const restartTimer = window.setTimeout(() => {
+                  physicsTimers.delete(restartTimer);
+                  runCycle();
+                }, 700);
+                physicsTimers.add(restartTimer);
+              }
+            }
+          }
+
+          const id = requestAnimationFrame(step);
+          physicsRafs.add(id);
+        };
+        const id = requestAnimationFrame(step);
+        physicsRafs.add(id);
+
+        matterCleanup = () => {
+          Matter.Composite.clear(world, false);
+          Matter.Engine.clear(engine);
+        };
+      };
+
+      ctaAutoTl.call(() => {
+        void startBouncerPhysics();
+      });
 
       const introTl = gsap.timeline({ delay: 0.3 });
       introTl
@@ -322,6 +816,10 @@ export function CinematicHero({
         // the grid fades out for the duration of this section only.
         .to(".cinematic-bg-grid", { scale: 1.15, filter: "blur(20px)", opacity: 0, ease: "power2.inOut", duration: 1.2 }, "-=0.2")
         .to(".content-group", { autoAlpha: 1, scale: 1, ease: "power3.out", duration: 2 }, "<")
+        .to(".ascii-logo-scroll-wrapper", {
+          autoAlpha: 1, y: 0, x: 0, scale: 1,
+          ease: "none", duration: 2.4,
+        }, "<")
         .fromTo(".mockup-scroll-wrapper",
           { y: 300, z: -500, rotationX: 50, rotationY: -30, autoAlpha: 0, scale: 0.6 },
           { y: 0, z: 0, rotationX: 0, rotationY: 0, autoAlpha: 1, scale: 1, ease: "expo.out", duration: 2.5 }, "-=1.2"
@@ -351,18 +849,40 @@ export function CinematicHero({
         .fromTo(".card-left-text", { x: -50, autoAlpha: 0 }, { x: 0, autoAlpha: 1, ease: "power4.out", duration: 1.5 }, "-=1.5")
         .fromTo(".card-right-text", { x: 50, autoAlpha: 0, scale: 0.8 }, { x: 0, autoAlpha: 1, scale: 1, ease: "expo.out", duration: 1.5 }, "<")
         .to({}, { duration: 2.5 })
-        // 4. Content layer exits fully before the CTA section's own text
-        // fades in — arriving at this section is what reveals its copy,
-        // not a simultaneous cross-fade with the layer above.
-        .to([".mockup-scroll-wrapper", ".floating-badge", ".card-left-text", ".card-right-text"], {
-          scale: 0.9, y: -40, z: -200, autoAlpha: 0, ease: "power3.in", duration: 1.2, stagger: 0.05,
+        // 4. A staggered curtain closes over the mockup. Swap the scene while
+        // it is covered, then open it from the opposite edge onto the CTA.
+        .to(".curtain-blind", {
+          scaleY: 1,
+          transformOrigin: "top center",
+          ease: "power4.inOut",
+          duration: 0.76,
+          stagger: { each: 0.09, from: "start" },
         })
+        .to([".mockup-scroll-wrapper", ".floating-badge", ".card-left-text", ".card-right-text"], {
+          scale: 0.9, y: -40, z: -200, autoAlpha: 0, ease: "power3.in", duration: 0.5, stagger: 0.03,
+        }, "<")
+        .to(".ascii-logo-scroll-wrapper", {
+          y: -window.innerHeight * 1.15, x: 0, scale: 1, autoAlpha: 0,
+          ease: "none", duration: 0.5,
+        }, "<")
         .set(".content-group", { autoAlpha: 0 })
         .set(".cta-wrapper", { autoAlpha: 1, scale: 1, filter: "blur(0px)" })
-        .to(".cinematic-bg-grid", { scale: 1, filter: "blur(0px)", opacity: 0.5, ease: "power2.out", duration: 1.2 }, "<")
-        .fromTo(".cta-heading", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "power3.out", duration: 1 }, "+=0.2")
-        .fromTo(".cta-description", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "power3.out", duration: 1 }, "-=0.6")
-        .fromTo(".cta-buttons", { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, ease: "power3.out", duration: 1 }, "-=0.6")
+        .to(".cinematic-bg-grid", { scale: 1, filter: "blur(0px)", opacity: 0.5, ease: "power2.out", duration: 0.65 }, "<")
+        .to(".curtain-blind", {
+          scaleY: 0,
+          transformOrigin: "bottom center",
+          ease: "power4.inOut",
+          duration: 0.82,
+          stagger: { each: 0.1, from: "end" },
+        }, "<")
+        .call(() => {
+          // ScrollTrigger can cross this point more than once while scrub
+          // catches up. The CTA must mount and play once, not restart as the
+          // visitor continues scrolling below the blinds transition.
+          if (ctaAutoPlayedRef.current) return;
+          ctaAutoPlayedRef.current = true;
+          ctaAutoTl.play(0);
+        }, [], "+=0.16")
         .to({}, { duration: 1.5 });
     }, containerRef);
 
@@ -379,6 +899,9 @@ export function CinematicHero({
       // pin-spacers to unwrap synchronously before ctx.revert()/React's own
       // cleanup touches the tree.
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      physicsRafs.forEach((id) => cancelAnimationFrame(id));
+      physicsTimers.forEach((id) => window.clearTimeout(id));
+      matterCleanup?.();
       ctx.revert();
     };
   }, [chatPrompt, reduced]);
@@ -599,7 +1122,7 @@ export function CinematicHero({
           </div>
 
           <div className="flex justify-center lg:justify-end w-full">
-            <PlasmaLogoMark className="w-48 md:w-64" alt={brandName} />
+            <AsciiIzaLogo3D className="w-48 md:w-64" alt={brandName} />
           </div>
         </div>
 
@@ -622,6 +1145,26 @@ export function CinematicHero({
       <div className="cinematic-film-grain" aria-hidden="true" />
       <div className="cinematic-bg-grid absolute inset-0 z-0 pointer-events-none opacity-50" aria-hidden="true" />
 
+      {/* Solid black blinds: close one-by-one, then reveal the CTA. */}
+      <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden" aria-hidden="true">
+        {Array.from({ length: 12 }, (_, index) => (
+          <span
+            key={index}
+            className="curtain-blind absolute inset-y-0 block bg-black will-change-transform"
+            style={{
+              left: `${(index / 12) * 100}%`,
+              width: `${100 / 12 + 0.12}%`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* The logo is behind the phone layer, so it can remain centered during
+          the mockup beat without blocking the interactive content. */}
+      <div className="ascii-logo-scroll-wrapper absolute inset-0 z-15 flex items-center justify-end pr-6 md:pr-12 lg:pr-24 pointer-events-none will-change-transform" style={{ perspective: "1400px", transformStyle: "preserve-3d" }}>
+        <AsciiIzaLogo3D className="w-56 md:w-80 lg:w-112" alt={brandName} />
+      </div>
+
       {/* Hero tagline layer */}
       <div className="hero-text-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-screen px-4 will-change-transform" style={{ transformStyle: "preserve-3d" }}>
         <h1 className="text-track gsap-reveal cinematic-text-matte text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tight mb-2">
@@ -640,24 +1183,79 @@ export function CinematicHero({
         </h2>
       </div>
 
-      {/* CTA layer */}
-      <div className="cta-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-screen px-4 gsap-reveal pointer-events-auto will-change-transform">
-        <h2 className="cta-heading text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight cinematic-text-silver">
-          {ctaHeading}
-        </h2>
-        <p className="cta-description text-secondary text-lg md:text-xl mb-12 max-w-[36rem] mx-auto font-light leading-relaxed">
-          {ctaDescription}
-        </p>
-        <div className="cta-buttons">{ctaButtons}</div>
+      {/* CTA layer: project brief on the left, nine-part IZA scene on right. */}
+      <div className="cta-wrapper absolute inset-0 z-10 w-screen px-19 md:px-24 lg:px-30 gsap-reveal pointer-events-auto will-change-transform">
+        {/* Not a 2-column grid anymore — the right side (cards) is absolute
+            and doesn't reserve any width, so the left column is free to
+            take a bigger left margin without the two sides fighting over a
+            fixed 50/50 split and cramping the text. */}
+        <div className="relative mx-auto flex h-full w-full items-center">
+          <div className="relative z-10 flex w-full flex-col items-center text-center lg:ml-16 lg:max-w-176 lg:items-start lg:text-left">
+            <p className="cta-kicker mb-5 text-xs font-semibold tracking-[0.24em] text-secondary uppercase"><span className="cta-brand-prop"><span className="cta-brand-i">I</span>za</span> creation labs / 202<span className="cta-year-six">6</span></p>
+            <h2 className="cta-heading text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight cinematic-text-silver">
+              {Array.from(ctaHeading).map((character, index) => (
+                <span
+                  key={`${character}-${index}`}
+                  className={`cta-heading-char inline-block${index === yourOIndex ? " cta-letter-your-o" : ""}${index === projectTIndex ? " cta-letter-project-t" : ""}`}
+                  // A lone space character as the sole content of its own
+                  // inline-block gets silently collapsed to zero width by
+                  // normal whitespace rules — this is why "Start your
+                  // project." was rendering as "Startyourproject.". `pre`
+                  // stops that collapse; the explicit width on top of it (a
+                  // fraction of this font's own, too-wide space glyph) is
+                  // what actually makes the gap read as a tight word space
+                  // instead of a full one.
+                  style={character === " " ? { whiteSpace: "pre", width: "0.24em" } : undefined}
+                >
+                  {character}
+                </span>
+              ))}
+            </h2>
+            <p className="cta-description text-secondary text-lg md:text-xl mb-12 max-w-[36rem] font-light leading-relaxed">
+              {ctaDescription}
+            </p>
+            <div className="cta-buttons">{ctaButtons}</div>
+
+          </div>
+
+          <div className="cta-orbit absolute right-0 top-1/2 hidden h-128 w-144 -translate-y-1/2 overflow-visible lg:block" aria-label="Project card stream">
+            {STREAM_CARD_SLOTS.map((slot, index) => {
+              const entry = streamCards[index];
+              return (
+                <div
+                  key={index}
+                  className={`cta-stream-card absolute ${slot.position} ${slot.size} ${slot.rounded} ${slot.shadow} overflow-hidden bg-white`}
+                >
+                  {entry && (
+                    <Image
+                      src={entry.thumbnailUrl}
+                      alt={entry.title}
+                      fill
+                      sizes="320px"
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="cta-bouncer cta-bouncer-one absolute left-0 top-0 z-30 h-8 w-8 md:h-10 md:w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)]" aria-hidden="true">
+          <Image src={rectangle52} alt="" fill sizes="40px" className="rounded-[28%] object-contain" />
+        </div>
+        <div className="cta-bouncer cta-bouncer-two absolute left-0 top-0 z-30 h-8 w-8 md:h-10 md:w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)]" aria-hidden="true">
+          <Image src={rectangle53} alt="" fill sizes="40px" className="rounded-[28%] object-contain" />
+        </div>
+        <div className="cta-bouncer cta-bouncer-three absolute left-0 top-0 z-30 h-8 w-8 md:h-10 md:w-10 drop-shadow-[0_12px_14px_rgba(0,0,0,0.28)]" aria-hidden="true">
+          <Image src={rectangle54} alt="" fill sizes="40px" className="rounded-[28%] object-contain" />
+        </div>
       </div>
 
       {/* Content layer — brand / phone mockup / heading+description, no card behind them */}
       <div className="content-group absolute inset-0 z-20 flex items-center justify-center pointer-events-none gsap-reveal" style={{ perspective: "1500px" }}>
         <div className="relative w-full h-full max-w-[90rem] mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 py-6 lg:py-0 pointer-events-auto">
 
-          <div className="card-right-text gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full">
-            <PlasmaLogoMark className="w-56 md:w-80 lg:w-96" alt={brandName} />
-          </div>
+          <div className="card-right-text gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full" />
 
           <div className="mockup-scroll-wrapper order-2 lg:order-2 relative w-full h-95 lg:h-150 flex items-center justify-center z-10" style={{ perspective: "1000px" }}>
             <div className="relative w-full h-full flex items-center justify-center transform scale-[0.65] md:scale-85 lg:scale-100">

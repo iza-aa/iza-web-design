@@ -7,6 +7,15 @@ function markAmbientReady() {
   window.dispatchEvent(new Event("ambient-canvas-ready"));
 }
 
+function canCreateWebGLContext() {
+  try {
+    const probe = document.createElement("canvas");
+    return Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 const DOT_PX = 5.5;
 const OPACITY = 0.42;
 const BRUSH_RADIUS = 0.01;
@@ -193,7 +202,7 @@ export function AmbientCanvas({
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isLowPower = (navigator.hardwareConcurrency || 4) <= 2;
-    if (isLowPower || typeof window.WebGLRenderingContext === "undefined") {
+    if (isLowPower || typeof window.WebGLRenderingContext === "undefined" || !canCreateWebGLContext()) {
       markAmbientReady(); // no canvas coming — don't leave the site-loader waiting on it
       return; // low-power fallback: no canvas mounted, static gradient backdrop shows through
     }
@@ -212,7 +221,13 @@ export function AmbientCanvas({
         let width = container.clientWidth;
         let height = container.clientHeight;
 
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+        let renderer: InstanceType<typeof THREE.WebGLRenderer>;
+        try {
+          renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false });
+        } catch {
+          markAmbientReady();
+          return;
+        }
         renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio, DPR_MIN), DPR_MAX));
         renderer.setSize(width, height);
         container.appendChild(renderer.domElement);
@@ -379,6 +394,7 @@ export function AmbientCanvas({
           trailMaterial.dispose();
           for (const target of trailTargets) target.dispose();
           renderer.dispose();
+          renderer.forceContextLoss();
           renderer.domElement.remove();
         };
       })

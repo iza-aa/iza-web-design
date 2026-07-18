@@ -16,6 +16,7 @@
     "ai": "^7.0.15",
     "framer-motion": "^12.42.2",
     "gsap": "^3.15.0",
+    "matter-js": "^0.20.0",
     "next": "latest",
     "nodemailer": "^9.0.3",
     "react": "latest",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "latest",
+    "@types/matter-js": "^0.20.2",
     "@types/node": "latest",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "latest",
