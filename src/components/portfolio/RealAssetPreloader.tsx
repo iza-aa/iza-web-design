@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { ARCHIVE_ITEMS } from "./ArchiveStageSection";
 
 // List of all critical assets required by the newhome portfolio page
 const CRITICAL_IMAGE_ASSETS = [
@@ -27,15 +28,8 @@ const CRITICAL_IMAGE_ASSETS = [
   "/gambar1.png",
   "/gambar2.png",
 
-  // Archive Card Artwork
-  "https://superdesign.dev/wp-content/uploads/2026/02/06.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/02.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/04.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/03.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/07.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/05.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/01.webp",
-  "https://superdesign.dev/wp-content/uploads/2026/02/08.webp",
+  // Archive Card Artwork from Supabase CDN
+  ...ARCHIVE_ITEMS.map((item) => item.imageUrl),
 ];
 
 const CRITICAL_3D_ASSETS = ["/crt_tv.glb"];
