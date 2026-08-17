@@ -26,7 +26,7 @@ function getApiKeys(): string[] {
   return (process.env.GEMINI_API_KEY ?? "")
     .split(",")
     .map((k) => k.trim())
-    .filter(Boolean);
+    .filter((k) => Boolean(k) && k !== "[SENSITIVE]");
 }
 
 // A raw attached image is far heavier than text, and this route resends the
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     return new Response(
       JSON.stringify({
         error:
-          "GEMINI_API_KEY isn't configured yet. Add it to .env.local (see .env.local.example) and restart the dev server.",
+          "GEMINI_API_KEY isn't configured yet. Add your Google Gemini API key to .env.local and restart the dev server.",
       }),
       { status: 503, headers: { "content-type": "application/json" } },
     );

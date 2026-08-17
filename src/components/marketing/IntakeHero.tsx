@@ -605,6 +605,90 @@ function isValidContact(method: ContactMethod, value: string): boolean {
   return true;
 }
 
+const THINKING_PHASES_EN = [
+  "Analyzing project requirements...",
+  "Structuring feature scope & architecture...",
+  "Synthesizing recommendations...",
+];
+
+const THINKING_PHASES_ID = [
+  "Menganalisis kebutuhan proyek...",
+  "Menyusun cakupan fitur & arsitektur...",
+  "Merumuskan rekomendasi...",
+];
+
+function InteractiveThinkingIndicator({ isIndonesian }: { isIndonesian: boolean }) {
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [elapsed, setElapsed] = useState(0.4);
+
+  const phases = isIndonesian ? THINKING_PHASES_ID : THINKING_PHASES_EN;
+
+  useEffect(() => {
+    const phaseInterval = setInterval(() => {
+      setPhaseIndex((prev) => (prev + 1) % phases.length);
+    }, 1400);
+
+    const timerInterval = setInterval(() => {
+      setElapsed((prev) => Number((prev + 0.1).toFixed(1)));
+    }, 100);
+
+    return () => {
+      clearInterval(phaseInterval);
+      clearInterval(timerInterval);
+    };
+  }, [phases.length]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+      transition={{ duration: 0.25, ease: easing.standard }}
+      className="flex justify-start my-1"
+    >
+      <div className="flex items-center gap-3 rounded-2xl rounded-bl-sm border border-border-subtle bg-(--glass-input-bg) px-4 py-2.5 shadow-sm">
+        {/* Animated Wave Dots */}
+        <div className="flex items-center gap-1">
+          <motion.span
+            className="h-1.5 w-1.5 rounded-full bg-primary"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: 0.0 }}
+          />
+          <motion.span
+            className="h-1.5 w-1.5 rounded-full bg-primary"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+          />
+          <motion.span
+            className="h-1.5 w-1.5 rounded-full bg-primary"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+          />
+        </div>
+
+        {/* Phase Text */}
+        <div className="flex items-baseline gap-2">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={phaseIndex}
+              initial={{ opacity: 0, y: 3 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -3 }}
+              transition={{ duration: 0.2 }}
+              className="text-xs font-medium text-on-surface"
+            >
+              {phases[phaseIndex]}
+            </motion.span>
+          </AnimatePresence>
+          <span className="text-[10px] font-mono text-secondary tabular-nums">
+            {elapsed.toFixed(1)}s
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function ContactCard({
   prompt,
   onAnswer,
@@ -742,14 +826,37 @@ type Brief = Record<string, string>;
 type MessagePart = { type: string; text?: string; mediaType?: string; url?: string; filename?: string };
 
 function extractBlock<T>(text: string, tag: string): { clean: string; value: T | null } {
-  const match = text.match(new RegExp("```" + tag + "\\s*([\\s\\S]*?)```"));
-  if (!match) return { clean: text, value: null };
-  try {
-    const value = JSON.parse(match[1].trim()) as T;
-    return { clean: text.replace(match[0], "").trim(), value };
-  } catch {
-    return { clean: text, value: null };
+  // 1. Standard triple backtick match: ```tag {...} ```
+  let match = text.match(new RegExp("```" + tag + "\\s*([\\s\\S]*?)```", "i"));
+  if (match) {
+    try {
+      const value = JSON.parse(match[1].trim()) as T;
+      return { clean: text.replace(match[0], "").trim(), value };
+    } catch {}
   }
+
+  // 2. Bare tag + JSON match: question {"prompt": ...} (when backticks are omitted)
+  const bareTagRegex = new RegExp("(?:^|\\s)" + tag + "\\s*(\\{[\\s\\S]*?\\})", "i");
+  match = text.match(bareTagRegex);
+  if (match) {
+    try {
+      const value = JSON.parse(match[1].trim()) as T;
+      return { clean: text.replace(match[0], "").trim(), value };
+    } catch {}
+  }
+
+  // 3. Fallback: Raw JSON object at the end containing expected keys
+  if (tag === "question") {
+    const jsonMatch = text.match(/\{[\s\S]*?"prompt"[\s\S]*?"options"[\s\S]*?\}/);
+    if (jsonMatch) {
+      try {
+        const value = JSON.parse(jsonMatch[0].trim()) as T;
+        return { clean: text.replace(jsonMatch[0], "").trim(), value };
+      } catch {}
+    }
+  }
+
+  return { clean: text, value: null };
 }
 
 function extractBrief(text: string): { clean: string; brief: Brief | null } {
@@ -871,7 +978,7 @@ export function IntakeHero({
   const [composerEl, setComposerEl] = useState<HTMLDivElement | null>(null);
   const [composerHeight, setComposerHeight] = useState(0);
   const { close, closed, sessionCloseTick, setAutoVisible } = useIntakeVisibility();
-  const { t, tList, setLocale } = useLanguage();
+  const { locale, t, tList, setLocale } = useLanguage();
   const { messages, setMessages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/intake", body: { model, preferredModel } }),
   });
@@ -982,36 +1089,31 @@ export function IntakeHero({
     bottomRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
   }, [messages, busy, composerHeight]);
 
-  // Auto-close the card on scroll down, auto-reopen on scroll up — only
-  // before a conversation has started. Once `started` is true this is
-  // disabled, since scrolling through the chat transcript itself would
-  // otherwise keep firing scroll-down and close the card mid-conversation.
+  // Auto-close the card on scroll down to Design Gallery, auto-reopen on scroll back to top
   useEffect(() => {
-    if (started) return;
     scrollLastYRef.current = window.scrollY;
     let ticking = false;
     function onScroll() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        // Ignore scroll caused by the mobile keyboard opening/closing while
-        // the textarea is focused — see composerFocusedRef above.
+        // Ignore scroll caused by mobile keyboard focus
         if (!composerFocusedRef.current) {
           const y = window.scrollY;
           const delta = y - scrollLastYRef.current;
-          if (delta > 8 && y > 80) setAutoVisible(false);
-          // Only auto-reopen once actually back near the top — a small
-          // upward wiggle deep in e.g. the gallery section shouldn't yank
-          // the intro card back over content the user is still browsing.
-          else if (delta < -8 && y <= 80) setAutoVisible(true);
-          if (Math.abs(delta) > 8) scrollLastYRef.current = y;
+          if (y > 50 && delta > 2) {
+            setAutoVisible(false);
+          } else if (y <= 50 && delta < -2) {
+            setAutoVisible(true);
+          }
+          if (Math.abs(delta) > 2) scrollLastYRef.current = y;
         }
         ticking = false;
       });
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [setAutoVisible, started]);
+  }, [setAutoVisible]);
 
   useEffect(() => {
     if (sessionCloseTick === 0) return;
@@ -1300,7 +1402,7 @@ export function IntakeHero({
           style={{ paddingBottom: composerHeight + 112 + 8 }}
         >
           {messages.map((m) => renderBubble(m))}
-          {busy && <p className="text-xs text-secondary">{t("aiIntake.thinking")}</p>}
+          {busy && <InteractiveThinkingIndicator isIndonesian={locale === "id"} />}
           {error && <p className="text-xs text-error">{t("aiIntake.rateLimited")}</p>}
           {/* scrollIntoView respects scroll-margin, so this keeps the auto
               scroll-to-bottom (on new message) landing clear of the fixed

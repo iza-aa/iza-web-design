@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import lefttoplogo from "@/assets/logo/lefttoplogo.png";
 import lefttoplogolight from "@/assets/logo/lefttoplogolight.png";
@@ -11,6 +12,7 @@ import { useTheme } from "@/lib/theme";
 const PUNCTUATION = [".", "?", "!"];
 
 export function BrandMark() {
+  const pathname = usePathname();
   const [index, setIndex] = useState(0);
   const { theme } = useTheme();
 
@@ -18,6 +20,10 @@ export function BrandMark() {
     const id = setInterval(() => setIndex((i) => (i + 1) % PUNCTUATION.length), 2200);
     return () => clearInterval(id);
   }, []);
+
+  if (pathname === "/" || pathname.startsWith("/newhome")) {
+    return null;
+  }
 
   return (
     <Link

@@ -12,3 +12,13 @@ out
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# AI Agent harnesses & documentation
+.agents/
+.claude/
+docs/
+AGENTS.md
+GEMINI.md
+.vercel
+.env*
+public/*_raw/

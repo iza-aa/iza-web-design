@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "@/lib/theme";
 import { useLanguage, type Locale } from "@/lib/language";
@@ -26,8 +27,13 @@ function MoonIcon() {
 }
 
 export function PreferencesBar() {
+  const pathname = usePathname();
   const { theme, toggle } = useTheme();
   const { locale, setLocale } = useLanguage();
+
+  if (pathname === "/" || pathname.startsWith("/newhome")) {
+    return null;
+  }
 
   function selectLocale(next: Locale) {
     if (next !== locale) setLocale(next);

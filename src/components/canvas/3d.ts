@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import bgImage from '@/assets/pexels-steve-29586676.jpg';
 
 export interface DomeThemeColors {
   /** Base color at the periphery (dim). */
@@ -39,6 +40,8 @@ void main() {
 `;
 
 const FRAGMENT_SHADER = `
+uniform sampler2D uTexture;
+uniform float uHasTexture;
 uniform float uGridScale;
 uniform vec3 uBaseDim;
 uniform vec3 uBaseGlow;
@@ -59,21 +62,28 @@ void main() {
   float facing = clamp(dot(viewDir, vec3(0.0, 0.0, -1.0)), 0.0, 1.0);
   float glow = smoothstep(0.1, 1.0, facing);
 
-  vec3 base = mix(uBaseDim, uBaseGlow, glow);
+  // Sample background texture
+  vec4 texSample = texture2D(uTexture, vUv);
+  vec3 photo = texSample.rgb;
 
-  float grid = gridFactor(vUv, uGridScale);
-  float lineOpacity = mix(0.12, 0.55, glow);
-  vec3 color = mix(base, uLineColor, grid * lineOpacity);
+  vec3 defaultBase = mix(uBaseDim, uBaseGlow, glow);
+  vec3 base = (uHasTexture > 0.5) ? photo : defaultBase;
 
-  // Fill the single grid cell the pointer is over solid — uLineColor
-  // already flips per theme (black in light mode, white in dark), so this
-  // reads as "this square lit up" without a separate color uniform.
-  // uHoverUV defaults to a sentinel far outside 0..1, so floor() of it
-  // never matches a real cell when there's no pointer / it's off-dome.
+  // Grid cell detection
   vec2 cell = floor(vUv * uGridScale);
   vec2 hoverCell = floor(uHoverUV * uGridScale);
   float isHoverCell = step(abs(cell.x - hoverCell.x), 0.001) * step(abs(cell.y - hoverCell.y), 0.001);
-  color = mix(color, uLineColor, isHoverCell);
+
+  // Alternate color of the photo when hovered (inverted negative / vibrant color-shift)
+  vec3 hoverPhoto = (uHasTexture > 0.5)
+    ? vec3(1.0 - photo.r, 1.0 - photo.g, 1.0 - photo.b)
+    : uLineColor;
+
+  vec3 surface = mix(base, hoverPhoto, isHoverCell);
+
+  float grid = gridFactor(vUv, uGridScale);
+  float lineOpacity = mix(0.2, 0.65, glow);
+  vec3 color = mix(surface, uLineColor, grid * lineOpacity);
 
   gl_FragColor = vec4(color, 1.0);
 }
@@ -81,6 +91,8 @@ void main() {
 
 interface DomeUniforms {
   [uniform: string]: THREE.IUniform;
+  uTexture: { value: THREE.Texture | null };
+  uHasTexture: { value: number };
   uGridScale: { value: number };
   uBaseDim: { value: THREE.Color };
   uBaseGlow: { value: THREE.Color };
@@ -103,7 +115,7 @@ export class DomeGridBackground {
   private facetMesh: THREE.Mesh;
   private facetMaterial: THREE.MeshBasicMaterial;
 
-  private clock: THREE.Clock;
+  private lastTime = performance.now();
   private resizeObserver: ResizeObserver;
   private rafId: number | null = null;
   private paused = false;
@@ -124,6 +136,7 @@ export class DomeGridBackground {
   // still works since it fills the viewport.
   private readonly onPointerMove = (e: PointerEvent): void => {
     const rect = this.container.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
     // Standard raycaster NDC: x right-positive, y UP-positive (screen Y
     // grows downward, so it's negated here).
     this.mouseNdc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -132,6 +145,7 @@ export class DomeGridBackground {
 
   private readonly onPointerLeave = (): void => {
     this.mouseNdc.copy(NO_HOVER);
+    this.domeUniforms.uHoverUV.value.copy(NO_HOVER);
   };
 
   private readonly onVisibilityChange = (): void => {
@@ -143,6 +157,7 @@ export class DomeGridBackground {
       }
     } else if (this.paused && !this.reducedMotion) {
       this.paused = false;
+      this.lastTime = performance.now();
       this.tick();
     }
   };
@@ -164,7 +179,9 @@ export class DomeGridBackground {
   }
 
   private readonly tick = (): void => {
-    const dt = Math.min(this.clock.getDelta(), 0.05);
+    const now = performance.now();
+    const dt = Math.min((now - this.lastTime) / 1000, 0.05);
+    this.lastTime = now;
     this.autoYaw += dt * this.autoRotateSpeed;
     this.camera.rotation.y = this.autoYaw;
 
@@ -198,12 +215,33 @@ export class DomeGridBackground {
     container.appendChild(this.renderer.domElement);
 
     this.domeUniforms = {
+      uTexture: { value: null },
+      uHasTexture: { value: 0.0 },
       uGridScale: { value: options.gridScale ?? 48 },
       uBaseDim: { value: new THREE.Color(options.baseColorDim ?? 0x090b17) },
       uBaseGlow: { value: new THREE.Color(options.baseColorGlow ?? 0x1a1e38) },
       uLineColor: { value: new THREE.Color(options.lineColor ?? 0x76a0dc) },
       uHoverUV: { value: NO_HOVER.clone() }
     };
+
+    const textureUrl = typeof bgImage === 'string' ? bgImage : ((bgImage as { src?: string })?.src || '/assets/pexels-steve-29586676.jpg');
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      textureUrl,
+      (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        this.domeUniforms.uTexture.value = texture;
+        this.domeUniforms.uHasTexture.value = 1.0;
+        this.domeMaterial.needsUpdate = true;
+        if (this.reducedMotion) this.renderer.render(this.scene, this.camera);
+      },
+      undefined,
+      (err) => {
+        console.error('Failed to load dome texture:', err);
+      }
+    );
 
     const domeGeometry = new THREE.SphereGeometry(domeRadius, 64, 48);
     this.domeMaterial = new THREE.ShaderMaterial({
@@ -225,8 +263,6 @@ export class DomeGridBackground {
     });
     this.facetMesh = new THREE.Mesh(facetGeometry, this.facetMaterial);
     this.scene.add(this.facetMesh);
-
-    this.clock = new THREE.Clock();
 
     window.addEventListener('pointermove', this.onPointerMove, { passive: true });
     window.addEventListener('pointerleave', this.onPointerLeave, { passive: true });
@@ -287,6 +323,10 @@ export class DomeGridBackground {
     window.removeEventListener('pointerleave', this.onPointerLeave);
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
 
+    if (this.domeUniforms.uTexture.value) {
+      this.domeUniforms.uTexture.value.dispose();
+      this.domeUniforms.uTexture.value = null;
+    }
     this.domeMesh.geometry.dispose();
     this.domeMaterial.dispose();
     this.facetMesh.geometry.dispose();

@@ -49,13 +49,18 @@ const items = [
 // boost), not a shared container `gap`.
 const BOOST_FALLOFF = 0.55;
 
-export function DockNav() {
+export function DockNav({ forceVisible = false }: { forceVisible?: boolean }) {
   const pathname = usePathname();
   const { closed, reopen } = useIntakeVisibility();
   const { t } = useLanguage();
   const { theme } = useTheme();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [contactOpen, setContactOpen] = useState(false);
+
+  if ((pathname === "/" || pathname.startsWith("/newhome")) && !forceVisible) {
+    return null;
+  }
+
   const showReopen = pathname === "/work" && closed;
 
   const entries = [
