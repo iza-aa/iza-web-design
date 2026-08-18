@@ -44,13 +44,12 @@ export function RealAssetPreloader({
   isWhiteTheme = false,
 }: RealAssetPreloaderProps) {
   const [displayedPercent, setDisplayedPercent] = useState<number>(1);
-  const [isDone, setIsDone] = useState<boolean>(false);
   const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
   const [isUnmounted, setIsUnmounted] = useState<boolean>(false);
 
-  const realProgressRef = useRef<number>(0);
-  const targetPercentRef = useRef<number>(1);
-  const allLoadedRef = useRef<boolean>(false);
+  const allAssetsLoadedRef = useRef<boolean>(false);
+  const startTimeRef = useRef<number>(0);
+  const hasFinishedRef = useRef<boolean>(false);
 
   useEffect(() => {
     let loadedCount = 0;
@@ -58,15 +57,8 @@ export function RealAssetPreloader({
 
     const updateItemLoaded = () => {
       loadedCount++;
-      const rawRatio = loadedCount / totalCount;
-      realProgressRef.current = rawRatio;
-
       if (loadedCount >= totalCount) {
-        allLoadedRef.current = true;
-        targetPercentRef.current = 100;
-      } else {
-        // Clamped at 99% until every single asset is 100% loaded
-        targetPercentRef.current = Math.min(99, Math.max(1, Math.floor(rawRatio * 100)));
+        allAssetsLoadedRef.current = true;
       }
     };
 
@@ -74,7 +66,7 @@ export function RealAssetPreloader({
     CRITICAL_IMAGE_ASSETS.forEach((src) => {
       const img = new Image();
       img.onload = () => updateItemLoaded();
-      img.onerror = () => updateItemLoaded(); // don't block forever if offline/error
+      img.onerror = () => updateItemLoaded();
       img.src = src;
     });
 
@@ -94,34 +86,44 @@ export function RealAssetPreloader({
       updateItemLoaded();
     }
 
-    // 4. Smooth 60/120 FPS RAF Number Incrementing towards Real Progress
+    // 4. Smooth, continuous time-based easing (Perkiraan durasi ~1.8 detik melandai konstan)
+    const ESTIMATED_DURATION_MS = 1800;
+    startTimeRef.current = performance.now();
     let animId: number;
-    let currentVal = 1;
 
-    const tick = () => {
-      const target = targetPercentRef.current;
+    const tick = (now: number) => {
+      if (hasFinishedRef.current) return;
 
-      if (currentVal < target) {
-        // Increment smoothly towards target
-        const diff = target - currentVal;
-        const step = Math.max(1, Math.ceil(diff * 0.12));
-        currentVal = Math.min(target, currentVal + step);
-        setDisplayedPercent(currentVal);
+      const elapsed = now - startTimeRef.current;
+      const rawProgress = Math.min(1, elapsed / ESTIMATED_DURATION_MS);
+
+      // Smooth custom easing (melandai secara halus dan continuous tanpa lonjakan tiba-tiba)
+      const easedProgress = 1 - Math.pow(1 - rawProgress, 2.2);
+
+      let targetVal = Math.round(1 + easedProgress * 99); // 1 -> 100
+
+      // If real assets are not yet fully loaded, gently cap at 99%
+      if (!allAssetsLoadedRef.current && targetVal >= 99) {
+        targetVal = 99;
       }
 
-      if (currentVal >= 100 && allLoadedRef.current) {
+      // If all assets ARE loaded and time reached 100%
+      if (allAssetsLoadedRef.current && (rawProgress >= 1 || targetVal >= 100)) {
+        hasFinishedRef.current = true;
+        setDisplayedPercent(100);
         onLoadComplete?.();
-        // Give 450ms to comfortably view 100%, then initiate slow cinematic fade out
+
+        // 350ms to appreciate 100%, then smooth 1.3s cinematic fade out
         setTimeout(() => {
           setIsFadingOut(true);
-          // Only unmount after the 1300ms smooth fade transition completes fully
           setTimeout(() => {
             setIsUnmounted(true);
           }, 1400);
-        }, 450);
+        }, 350);
         return;
       }
 
+      setDisplayedPercent(targetVal);
       animId = requestAnimationFrame(tick);
     };
 
