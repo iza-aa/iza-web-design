@@ -29,6 +29,14 @@ function saveCache() {
 
 async function optimizeImage(inputPath, outputPath, options = {}) {
   const { maxWidth = 2048, maxHeight = 2048, quality = 90 } = options;
+  if (fs.existsSync(outputPath)) {
+    const inStat = fs.statSync(inputPath);
+    const outStat = fs.statSync(outputPath);
+    if (outStat.mtimeMs >= inStat.mtimeMs) {
+      return false; // Output already exists and is newer than source
+    }
+  }
+
   const hash = getFileHash(inputPath);
   const cacheKey = `${inputPath}->${outputPath}`;
 
