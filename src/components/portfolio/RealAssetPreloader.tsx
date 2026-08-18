@@ -86,8 +86,8 @@ export function RealAssetPreloader({
       updateItemLoaded();
     }
 
-    // 4. Smooth, continuous time-based easing (Perkiraan durasi ~1.8 detik melandai konstan)
-    const ESTIMATED_DURATION_MS = 1800;
+    // 4. Constant Linear Metronome Progress (1% -> 100% in steady, uniform tempo over 2.4s)
+    const TARGET_DURATION_MS = 2400; // 24ms per percent -> 100% constant uniform tempo
     startTimeRef.current = performance.now();
     let animId: number;
 
@@ -95,20 +95,12 @@ export function RealAssetPreloader({
       if (hasFinishedRef.current) return;
 
       const elapsed = now - startTimeRef.current;
-      const rawProgress = Math.min(1, elapsed / ESTIMATED_DURATION_MS);
+      const linearRatio = Math.min(1, elapsed / TARGET_DURATION_MS);
 
-      // Smooth custom easing (melandai secara halus dan continuous tanpa lonjakan tiba-tiba)
-      const easedProgress = 1 - Math.pow(1 - rawProgress, 2.2);
+      // Pure linear progression (1% -> 100% at exact uniform speed)
+      const currentPercent = Math.max(1, Math.min(100, Math.floor(linearRatio * 99) + 1));
 
-      let targetVal = Math.round(1 + easedProgress * 99); // 1 -> 100
-
-      // If real assets are not yet fully loaded, gently cap at 99%
-      if (!allAssetsLoadedRef.current && targetVal >= 99) {
-        targetVal = 99;
-      }
-
-      // If all assets ARE loaded and time reached 100%
-      if (allAssetsLoadedRef.current && (rawProgress >= 1 || targetVal >= 100)) {
+      if (linearRatio >= 1) {
         hasFinishedRef.current = true;
         setDisplayedPercent(100);
         onLoadComplete?.();
@@ -123,7 +115,7 @@ export function RealAssetPreloader({
         return;
       }
 
-      setDisplayedPercent(targetVal);
+      setDisplayedPercent(currentPercent);
       animId = requestAnimationFrame(tick);
     };
 
