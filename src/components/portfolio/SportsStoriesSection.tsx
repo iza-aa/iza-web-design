@@ -26,7 +26,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Granular holographic synthesis and generative soundscapes.",
     category: "EXPERIMENTAL AUDIO",
     year: "2026",
-    imageSrc: "/kaset/Rectangle.png",
+    imageSrc: "/kaset/Rectangle.webp",
   },
   {
     id: "edition-2",
@@ -36,7 +36,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Bridging classical renaissance aesthetics with modern WebGL compute shaders.",
     category: "SHADERS / WEBGL",
     year: "2026",
-    imageSrc: "/kaset/Rectangle copy.png",
+    imageSrc: "/kaset/Rectangle copy.webp",
   },
   {
     id: "edition-3",
@@ -46,7 +46,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "80s neon script typography floating over luminescent dusk ocean.",
     category: "NEON INTERACTION",
     year: "2026",
-    imageSrc: "/kaset/Rectangle copy 2.png",
+    imageSrc: "/kaset/Rectangle copy 2.webp",
   },
   {
     id: "edition-4",
@@ -56,7 +56,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Retro desktop window enclosing a glowing CRT TV with vibrant graffiti.",
     category: "DESIGN SYSTEM",
     year: "2026",
-    imageSrc: "/kaset/Rectangle-1.png",
+    imageSrc: "/kaset/Rectangle-1.webp",
   },
 
   // ── BOTTOM SHELF (5 ITEMS) ──
@@ -68,7 +68,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Immersive, powerful, unified design system.",
     category: "DESIGN SYSTEMS",
     year: "2026",
-    imageSrc: "/kaset/Rectangle-2.png",
+    imageSrc: "/kaset/Rectangle-2.webp",
   },
   {
     id: "edition-6",
@@ -78,7 +78,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Modular 3D building blocks and robust component engineering.",
     category: "ARCHITECTURE",
     year: "2026",
-    imageSrc: "/kaset/Group 182.png",
+    imageSrc: "/kaset/Group 182.webp",
   },
   {
     id: "edition-7",
@@ -88,7 +88,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Visualizing enterprise growth through chromatic refraction and vertical prism arrays.",
     category: "DATA VISUALIZATION",
     year: "2026",
-    imageSrc: "/kaset/Group 183.png",
+    imageSrc: "/kaset/Group 183.webp",
   },
   {
     id: "edition-8",
@@ -98,7 +98,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Long-lasting scalable digital ecosystems designed for sustained performance.",
     category: "EDITORIAL UI",
     year: "2026",
-    imageSrc: "/kaset/Group 184.png",
+    imageSrc: "/kaset/Group 184.webp",
   },
   {
     id: "edition-9",
@@ -108,7 +108,7 @@ const EDITIONS_DATA: EditionItem[] = [
     tagline: "Seamless omnichannel interaction and soft 3D commerce primitives.",
     category: "COMMERCE UI",
     year: "2026",
-    imageSrc: "/kaset/Group 185.png",
+    imageSrc: "/kaset/Group 185.webp",
   },
 ];
 

@@ -51,7 +51,7 @@ export function CRT3DVideoCard({ scrollProgress = 0 }: CRT3DVideoCardProps) {
     // 2. Preload Broken Glass Texture
     const textureLoader = new THREE.TextureLoader();
     const brokenGlassTexture = textureLoader.load(
-      "/broken_glass_png_20_by_agusrockforlife_ddyqyd9.png"
+      "/broken_glass_png_20_by_agusrockforlife_ddyqyd9.webp"
     );
     brokenGlassTexture.colorSpace = THREE.SRGBColorSpace;
     brokenGlassTexture.generateMipmaps = false;

@@ -22,3 +22,4 @@ GEMINI.md
 .vercel
 .env*
 public/*_raw/
+.asset-cache.json

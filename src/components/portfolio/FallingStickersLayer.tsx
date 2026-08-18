@@ -3,11 +3,11 @@
 import React, { useEffect, useRef } from "react";
 
 const STICKER_SRC_LIST = [
-  "/sticker/Group 177.png",
-  "/sticker/Group 178.png",
-  "/sticker/Group 179.png",
-  "/sticker/Group 180.png",
-  "/sticker/Group 181.png",
+  "/sticker/Group 177.webp",
+  "/sticker/Group 178.webp",
+  "/sticker/Group 179.webp",
+  "/sticker/Group 180.webp",
+  "/sticker/Group 181.webp",
 ];
 
 interface StickerParticle {

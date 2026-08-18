@@ -5,28 +5,28 @@ import { ARCHIVE_ITEMS } from "./ArchiveStageSection";
 
 // List of all critical assets required by the newhome portfolio page
 const CRITICAL_IMAGE_ASSETS = [
-  // 9 Shelf Cassettes
-  "/kaset/Group 182.png",
-  "/kaset/Group 183.png",
-  "/kaset/Group 184.png",
-  "/kaset/Group 185.png",
-  "/kaset/Rectangle copy 2.png",
-  "/kaset/Rectangle copy.png",
-  "/kaset/Rectangle-1.png",
-  "/kaset/Rectangle-2.png",
-  "/kaset/Rectangle.png",
+  // 9 Shelf Cassettes (.webp)
+  "/kaset/Group 182.webp",
+  "/kaset/Group 183.webp",
+  "/kaset/Group 184.webp",
+  "/kaset/Group 185.webp",
+  "/kaset/Rectangle copy 2.webp",
+  "/kaset/Rectangle copy.webp",
+  "/kaset/Rectangle-1.webp",
+  "/kaset/Rectangle-2.webp",
+  "/kaset/Rectangle.webp",
 
-  // 5 Floating Stickers
-  "/sticker/Group 177.png",
-  "/sticker/Group 178.png",
-  "/sticker/Group 179.png",
-  "/sticker/Group 180.png",
-  "/sticker/Group 181.png",
+  // 5 Floating Stickers (.webp)
+  "/sticker/Group 177.webp",
+  "/sticker/Group 178.webp",
+  "/sticker/Group 179.webp",
+  "/sticker/Group 180.webp",
+  "/sticker/Group 181.webp",
 
-  // Hero & 3D TV Textures
-  "/broken_glass_png_20_by_agusrockforlife_ddyqyd9.png",
-  "/gambar1.png",
-  "/gambar2.png",
+  // Hero & 3D TV Textures (.webp)
+  "/broken_glass_png_20_by_agusrockforlife_ddyqyd9.webp",
+  "/gambar1.webp",
+  "/gambar2.webp",
 
   // Archive Card Artwork from Supabase CDN
   ...ARCHIVE_ITEMS.map((item) => item.imageUrl),

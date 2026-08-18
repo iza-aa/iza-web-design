@@ -982,13 +982,13 @@ export function PodiumIntroHero({
     const tex2Obj = createWebGlVideoTexture(gl, "/video2.mov", gl.TEXTURE3, (aspect) => {
       uniformsRef.current.texAspect2 = aspect;
     });
-    const tex3Obj = createWebGlImageTexture(gl, "/gambar1.png", gl.TEXTURE4, (aspect) => {
+    const tex3Obj = createWebGlImageTexture(gl, "/gambar1.webp", gl.TEXTURE4, (aspect) => {
       uniformsRef.current.texAspect3 = aspect;
     });
     const tex4Obj = createWebGlVideoTexture(gl, "/video1.mov", gl.TEXTURE5, (aspect) => {
       uniformsRef.current.texAspect4 = aspect;
     });
-    const tex5Obj = createWebGlImageTexture(gl, "/gambar2.png", gl.TEXTURE6, (aspect) => {
+    const tex5Obj = createWebGlImageTexture(gl, "/gambar2.webp", gl.TEXTURE6, (aspect) => {
       uniformsRef.current.texAspect5 = aspect;
     });
 

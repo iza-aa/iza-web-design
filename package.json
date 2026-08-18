@@ -3,8 +3,10 @@
   "version": "1.4.8",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/optimize-assets.mjs && next dev",
+    "prebuild": "node scripts/optimize-assets.mjs",
     "build": "next build",
+    "optimize": "node scripts/optimize-assets.mjs",
     "start": "next start",
     "lint": "next lint"
   },
@@ -28,6 +30,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.4.2",
+    "@gltf-transform/extensions": "^4.4.2",
+    "@gltf-transform/functions": "^4.4.2",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "latest",
     "@types/matter-js": "^0.20.2",
@@ -35,7 +40,9 @@
     "@types/nodemailer": "^8.0.1",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "meshoptimizer": "^1.2.0",
     "postcss": "latest",
+    "sharp": "^0.35.3",
     "tailwindcss": "latest",
     "typescript": "latest"
   }
